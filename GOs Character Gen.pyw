@@ -291,7 +291,6 @@ def generate_weapons_advanced():
 # ==========================
 def refresh_display():
     if global_root is not None:
-        total_bonus = sum(armor['bonus'] for armor in global_armor) if global_armor else 0
         total_dex_penalty = 0
         total_agl_penalty = 0
         total_speed_penalty = 0
@@ -325,8 +324,8 @@ def refresh_display():
         effective_dex = base_dex + total_dex_penalty
         dex_display = f"{base_dex}+(DEX){total_dex_penalty}({effective_dex})"
         base_sta = global_root['STA']
-        toughness_total = base_sta + total_bonus
-        toughness_display = f"{base_sta}+A{total_bonus}({toughness_total})"
+        toughness_base = global_root['Toughness']
+        toughness_total = toughness_base + base_sta
         effective_speed = 30 + total_speed_penalty
         speed_display = f"({effective_speed})"
         root_line = (f"STR:{global_root['STR']} "
@@ -409,8 +408,7 @@ def generate_root():
     Parry = FGT + random.randint(0, 6)
     Fortitude = STA + random.randint(0, 6)
     Will = AWE + random.randint(0, 6)
-    total_bonus = sum(armor['bonus'] for armor in global_armor) if global_armor else 0
-    Toughness = STA + total_bonus
+    Toughness = 0
     global_root = {
         'STR': STR, 'AGL': AGL, 'FGT': FGT, 'AWE': AWE,
         'STA': STA, 'DEX': DEX, 'INT': INT, 'PRE': PRE,
@@ -454,8 +452,10 @@ def update_root():
         new_will = int(entry_will.get())
     except ValueError:
         return
-    total_bonus = sum(armor['bonus'] for armor in global_armor) if global_armor else 0
-    new_toughness = new_sta + total_bonus
+    try:
+        new_toughness = int(entry_toughness.get())
+    except ValueError:
+        new_toughness = 0
     entry_toughness.delete(0, tk.END)
     entry_toughness.insert(0, str(new_toughness))
     global_root['STR'] = new_str
