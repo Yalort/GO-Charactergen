@@ -11,6 +11,11 @@ global_armor = []       # List of armor dictionaries.
 global_weapons = []     # List of weapon dictionaries.
 global_powers = []      # List of power dictionaries.
 characters = {}         # Saved characters
+groups = []             # Character groups
+save_group_var = None
+save_group_menu = None
+filter_group_var = None
+filter_group_menu = None
 
 # ==========================
 # Presets Data and File Path
@@ -544,37 +549,57 @@ def save_presets_to_file():
 # Character Saving/Loading Functions
 # ==========================
 def load_characters():
-    global characters
+    global characters, groups
     if os.path.exists(characters_file):
         try:
             with open(characters_file, "r") as f:
-                characters = json.load(f)
+                data = json.load(f)
+            if isinstance(data, dict) and "characters" in data:
+                characters = data.get("characters", {})
+                groups = data.get("groups", [])
+            else:
+                characters = data
+                groups = []
         except Exception as e:
             print("Error loading characters:", e)
             characters = {}
+            groups = []
     else:
         characters = {}
+        groups = []
     update_character_list()
+    update_group_menus()
 
 def save_characters_to_file():
     try:
         with open(characters_file, "w") as f:
-            json.dump(characters, f, indent=2)
+            json.dump({"characters": characters, "groups": groups}, f, indent=2)
     except Exception as e:
         print("Error saving characters:", e)
 
 def save_character():
+    global save_group_var
     if global_root is None:
         return
-    name = simpledialog.askstring("Save Character", "Enter character name:")
-    if not name:
+    entry = simpledialog.askstring(
+        "Save Character",
+        "Enter name and tags separated by ';' (e.g. Bob; hero, villain):",
+    )
+    if not entry:
         return
-    tag_str = simpledialog.askstring("Save Character", "Enter tags (comma separated):")
-    tags = []
-    if tag_str:
-        tags = [t.strip() for t in tag_str.split(',') if t.strip()]
+    if ';' in entry:
+        name_part, tag_part = entry.split(';', 1)
+    else:
+        name_part, tag_part = entry, ""
+    name = name_part.strip()
+    tag_str = tag_part.strip()
+    tags = [t.strip() for t in tag_str.split(',') if t.strip()]
+    group = save_group_var.get()
+    if group == "None":
+        group = None
     characters[name] = {
         "tags": tags,
+        "group": group,
         "root": global_root,
         "armor": global_armor,
         "weapons": global_weapons,
@@ -595,6 +620,8 @@ def delete_character():
 
 def character_to_text(data):
     lines = []
+    if data.get("group"):
+        lines.append(f"Group: {data['group']}")
     root_stats = data.get("root")
     if root_stats:
         line1 = (
@@ -640,10 +667,15 @@ def on_character_select(event=None):
     character_display.insert(tk.END, character_to_text(data))
 
 def update_character_list(filter_text=""):
+    global filter_group_var
     characters_listbox.delete(0, tk.END)
     ft = filter_text.lower()
+    group_filter = filter_group_var.get()
     for name, data in characters.items():
         tags = ' '.join(data.get('tags', []))
+        group = data.get('group')
+        if group_filter != "All" and group != group_filter:
+            continue
         if ft:
             if ft in name.lower() or ft in tags.lower():
                 characters_listbox.insert(tk.END, name)
@@ -776,6 +808,32 @@ def update_all_preset_menus():
     update_preset_menu("weapon")
     update_preset_menu("power")
 
+def update_group_menus():
+    global save_group_var, save_group_menu, filter_group_var, filter_group_menu
+    if save_group_menu is not None:
+        menu = save_group_menu["menu"]
+        menu.delete(0, "end")
+        menu.add_command(label="None", command=lambda v="None": save_group_var.set(v))
+        for g in groups:
+            menu.add_command(label=g, command=lambda value=g: save_group_var.set(value))
+    if filter_group_menu is not None:
+        menu = filter_group_menu["menu"]
+        menu.delete(0, "end")
+        menu.add_command(label="All", command=lambda v="All": filter_group_var.set(v))
+        for g in groups:
+            menu.add_command(label=g, command=lambda value=g: filter_group_var.set(value))
+    update_character_list()
+
+def add_group():
+    global groups
+    name = simpledialog.askstring("Add Group", "Enter group name:")
+    if not name:
+        return
+    if name not in groups:
+        groups.append(name)
+        save_characters_to_file()
+        update_group_menus()
+
 # Load presets from file.
 def load_presets():
     global presets
@@ -827,6 +885,17 @@ if __name__ == '__main__':
     output_box.pack(padx=5, pady=5)
     btn_clear_all = tk.Button(output_frame, text="Clear All", command=clear_all)
     btn_clear_all.pack(pady=5)
+
+    save_frame = tk.Frame(output_frame)
+    save_frame.pack(pady=5)
+    tk.Label(save_frame, text="Group:").pack(side=tk.LEFT)
+    save_group_var = tk.StringVar(value="None")
+    save_group_menu = tk.OptionMenu(save_frame, save_group_var, "None")
+    save_group_menu.pack(side=tk.LEFT, padx=5)
+    btn_add_group_gen = tk.Button(save_frame, text="Add Group", command=add_group)
+    btn_add_group_gen.pack(side=tk.LEFT, padx=5)
+    btn_save_char_gen = tk.Button(save_frame, text="Save Character", command=save_character)
+    btn_save_char_gen.pack(side=tk.LEFT, padx=5)
 
     # Left Frame: Controls (stacked vertically)
     control_frame = tk.Frame(main_frame)
@@ -961,10 +1030,18 @@ if __name__ == '__main__':
     character_display = tk.Text(characters_tab, height=15)
     character_display.pack(fill=tk.BOTH, expand=True, padx=5, pady=5)
 
+    group_frame = tk.Frame(characters_tab)
+    group_frame.pack(fill=tk.X, padx=5)
+    tk.Label(group_frame, text="Group:").pack(side=tk.LEFT)
+    filter_group_var = tk.StringVar(value="All")
+    filter_group_menu = tk.OptionMenu(group_frame, filter_group_var, "All")
+    filter_group_menu.pack(side=tk.LEFT, padx=5)
+    filter_group_var.trace_add("write", lambda *args: update_character_list(search_var.get()))
+    btn_add_group_char = tk.Button(group_frame, text="Add Group", command=add_group)
+    btn_add_group_char.pack(side=tk.LEFT, padx=5)
+
     char_btn_frame = tk.Frame(characters_tab)
     char_btn_frame.pack(pady=5)
-    btn_save_char = tk.Button(char_btn_frame, text="Save Current Character", command=save_character)
-    btn_save_char.pack(side=tk.LEFT, padx=5)
     btn_delete_char = tk.Button(char_btn_frame, text="Delete Selected", command=delete_character)
     btn_delete_char.pack(side=tk.LEFT, padx=5)
 
