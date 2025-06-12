@@ -1,0 +1,779 @@
+import tkinter as tk
+import tkinter.simpledialog as simpledialog
+import random, os, json
+
+# ==========================
+# Global State Variables
+# ==========================
+global_root = None      # Dictionary for root stats and derived values.
+global_armor = []       # List of armor dictionaries.
+global_weapons = []     # List of weapon dictionaries.
+global_powers = []      # List of power dictionaries.
+
+# ==========================
+# Presets Data and File Path
+# ==========================
+presets = {"root": {}, "armor": {}, "weapon": {}, "power": {}}
+presets_dir = os.path.join(os.path.expanduser("~"), "Documents", "GOsCharacterGen")
+presets_file = os.path.join(presets_dir, "presets.json")
+os.makedirs(presets_dir, exist_ok=True)
+
+# ==========================
+# Data Definitions
+# ==========================
+# Armor data: (Name, Bonus, [Tags])
+armors_data = [
+    ("Padded Armor", 1, ["Medieval", "Light"]),
+    ("Leather Armor", 2, ["Medieval", "Light"]),
+    ("Studded Leather", 3, ["Medieval", "Light"]),
+    ("Brigandine", 4, ["Medieval", "Medium"]),
+    ("Chain Shirt", 4, ["Medieval", "Medium"]),
+    ("Chainmail", 6, ["Medieval", "Heavy"]),
+    ("Scale Mail", 7, ["Medieval", "Medium"]),
+    ("Lamellar Armor", 7, ["Medieval", "Medium"]),
+    ("Plate Mail", 8, ["Medieval", "Heavy"]),
+    ("Full Plate", 10, ["Medieval", "Heavy"]),
+    ("Ballistic Vest", 12, ["Modern", "Light"]),
+    ("Riot Armor", 14, ["Modern", "Medium"]),
+    ("SWAT Tactical Armor", 16, ["Modern", "Medium"]),
+    ("Military Body Armor", 18, ["Modern", "Heavy", "Ablative"]),
+    ("Bomb Disposal Suit", 20, ["Modern", "Heavy", "Sealed"]),
+    ("Canine Training Suit", 10, ["Modern", "Light"]),
+    ("Hazmat Suit", 8, ["Modern", "Sealed", "Light"]),
+    ("EOD Suit", 22, ["Modern", "Heavy", "Sealed", "Ablative"]),
+    ("Powered Exosuit", 24, ["Postmodern", "Power", "Medium"]),
+    ("Tactical Nanite Vest", 25, ["Postmodern", "Medium", "Nanite", "Ablative"]),
+    ("Adaptive Nanite Armor", 28, ["Postmodern", "Nanite", "Sealed", "Ablative", "Medium"]),
+    ("Energy Shielded Armor", 26, ["Postmodern", "Power", "Sealed", "Light"]),
+    ("Mech-Infantry Suit", 30, ["Postmodern", "Power", "Heavy", "Sealed", "Ablative"]),
+    ("Synthetic Bio-Armor", 28, ["Postmodern", "Nanite", "Medium", "Sealed"]),
+    ("Void Suit", 26, ["Postmodern", "Sealed", "Medium"]),
+    ("Aegis-Class Titan Armor", 30, ["Postmodern", "Power", "Heavy", "Sealed", "Ablative"]),
+    ("Phase-Shifting Armor", 27, ["Postmodern", "Medium", "Power"]),
+    ("Dystopian Riot Gear", 22, ["Postmodern", "Medium", "Modern"])
+]
+
+# Weapons data: (Name, Base Damage, Tags, Associated Stat)
+weapons_data = [
+    ("Club", 2, "Medieval, Melee", "STR"),
+    ("Dagger", 3, "Medieval, Melee, Thrown, Finesse, Stealth", "DEX"),
+    ("Shortsword", 5, "Medieval, Melee, Finesse, Riposte", "DEX"),
+    ("Longsword", 7, "Medieval, Melee", "STR"),
+    ("Rapier", 4, "Medieval, Melee, Finesse, Improved Crit(2), Riposte, Stealth", "DEX"),
+    ("Mace", 6, "Medieval, Melee, Crushing(2)", "STR"),
+    ("Warhammer", 8, "Medieval, Melee, Crushing(4), Heavy", "STR"),
+    ("Battle Axe", 7, "Medieval, Melee, Cleaving, Heavy", "STR"),
+    ("Greatsword", 10, "Medieval, Melee, 2-Hand, Cleaving, Heavy, Improved Crit(1)", "STR"),
+    ("Spear", 4, "Medieval, Melee, Thrown, Reach(5)", "STR"),
+    ("Halberd", 9, "Medieval, Melee, 2-Hand, Reach(10), Cleaving", "STR"),
+    ("Pike", 8, "Medieval, Melee, 2-Hand, Reach(15)", "STR"),
+    ("Scimitar", 6, "Medieval, Melee, Finesse, Riposte", "DEX"),
+    ("Falchion", 7, "Medieval, Melee, Cleaving", "STR"),
+    ("Throwing Axe", 3, "Medieval, Thrown, Finesse", "DEX"),
+    ("Hand Axe", 4, "Medieval, Thrown, Finesse", "DEX"),
+    ("Short Bow", 4, "Medieval, Ranged, 2-Hand, Ammunition", "DEX"),
+    ("Long Bow", 7, "Medieval, Ranged, 2-Hand, Ammunition", "DEX"),
+    ("Crossbow", 8, "Medieval, Ranged, 2-Hand, Ammunition, Reload", "DEX"),
+    ("Hand Crossbow", 4, "Medieval, Ranged, Ammunition, Reload, Stealth", "DEX"),
+    ("Sling", 2, "Medieval, Ranged, Ammunition, Thrown", "DEX"),
+    ("Javelin", 3, "Medieval, Thrown", "STR"),
+    ("Lance", 9, "Medieval, Melee, 2-Hand, Reach(10), Heavy", "STR"),
+    ("Bardiche", 9, "Medieval, Melee, 2-Hand, Cleaving, Heavy", "STR"),
+    ("Glaive", 8, "Medieval, Melee, 2-Hand, Reach(10), Cleaving", "STR"),
+    ("Quarterstaff", 2, "Medieval, Melee, Defensive", "STR"),
+    ("Morning Star", 7, "Medieval, Melee, Brutal, Crushing(3)", "STR"),
+    ("Flail", 6, "Medieval, Melee, Unwieldy, Crushing(2)", "STR"),
+    ("War Scythe", 8, "Medieval, Melee, 2-Hand, Cleaving, Unwieldy", "STR"),
+    ("Net", 1, "Medieval, Ranged, Thrown, Entangling", "DEX"),
+    ("Bolas", 2, "Medieval, Thrown, Entangling", "DEX"),
+    ("Hooked Mace", 5, "Medieval, Melee, Hooking, Crushing(2)", "STR"),
+    ("Dirk", 3, "Medieval, Melee, Finesse, Stealth", "DEX"),
+    ("Estoc", 6, "Medieval, Melee, Piercing(2), Finesse", "DEX"),
+    ("Sickle", 4, "Medieval, Melee, Finesse", "DEX"),
+    ("Maul", 12, "Medieval, Melee, 2-Hand, Crushing(6), Heavy", "STR"),
+    ("Giant's Club", 15, "Medieval, Melee, 2-Hand, Crushing(8), Heavy, Unwieldy", "STR"),
+    ("Spiked Gauntlet", 4, "Medieval, Melee, Finesse, Piercing(1)", "DEX"),
+    ("Repeating Crossbow", 9, "Medieval, Ranged, 2-Hand, Ammunition, Reload", "DEX"),
+    ("Heavy Lance", 11, "Medieval, Melee, 2-Hand, Reach(15), Heavy", "STR"),
+    ("Spiked Club", 5, "Medieval, Melee, Crushing(3), Piercing(1)", "STR"),
+    ("Executioner's Axe", 16, "Medieval, Melee, 2-Hand, Cleaving, Heavy, Brutal", "STR"),
+    ("Colossal Warhammer", 18, "Medieval, Melee, 2-Hand, Crushing(8), Heavy, Brutal", "STR"),
+    ("Great Cleaver", 17, "Medieval, Melee, 2-Hand, Cleaving, Brutal", "STR"),
+    ("Pistol", 6, "Modern, Ranged, Ammunition, Reload", "DEX"),
+    ("Revolver", 7, "Modern, Ranged, Ammunition, Reload", "DEX"),
+    ("Shotgun", 9, "Modern, Ranged, Ammunition, Reload, Heavy", "DEX"),
+    ("Assault Rifle", 8, "Modern, Ranged, Ammunition, Reload, Multiattack(3)", "DEX"),
+    ("Sniper Rifle", 12, "Modern, Ranged, Ammunition, Reload, Piercing(3), Heavy", "DEX"),
+    ("Submachine Gun", 7, "Modern, Ranged, Ammunition, Reload, Multiattack(4)", "DEX"),
+    ("Machine Gun", 10, "Modern, Ranged, Ammunition, Reload, Heavy, Multiattack(5)", "DEX"),
+    ("Grenade Launcher", 11, "Modern, Ranged, Ammunition, Thrown, Reload, Heavy", "DEX"),
+    ("Flamethrower", 10, "Modern, Ranged, Ammunition, Reload, Heavy", "DEX"),
+    ("Rocket Launcher", 15, "Modern, Ranged, Ammunition, Reload, Heavy", "STR"),
+    ("Taser", 2, "Modern, Ranged", "DEX"),
+    ("Bayonet", 4, "Modern, Melee, Finesse, Piercing(1)", "DEX"),
+    ("Combat Knife", 5, "Modern, Melee, Finesse, Stealth, Thrown", "DEX"),
+    ("Plasma Rifle", 10, "Postmodern, Ranged, Ammunition, Reload, Heavy", "DEX"),
+    ("Laser Pistol", 7, "Postmodern, Ranged, Ammunition, Reload, Stealth", "DEX"),
+    ("Gauss Rifle", 12, "Postmodern, Ranged, Ammunition, Reload, Piercing(4)", "DEX"),
+    ("Energy Sword", 9, "Postmodern, Melee, Finesse, Riposte", "DEX"),
+    ("Particle Cannon", 15, "Postmodern, Ranged, Ammunition, Reload, Heavy, Brutal", "STR"),
+    ("Railgun", 14, "Postmodern, Ranged, Ammunition, Reload, Piercing(4), Heavy", "STR"),
+    ("Nano Blade", 8, "Postmodern, Melee, Finesse, Stealth", "DEX"),
+    ("Photon Blaster", 9, "Postmodern, Ranged, Ammunition, Reload", "DEX"),
+    ("Ionizer", 7, "Postmodern, Ranged, Ammunition, Reload", "DEX"),
+    ("Gravity Hammer", 16, "Postmodern, Melee, 2-Hand, Crushing(8), Heavy, Brutal", "STR"),
+    ("Sonic Disruptor", 10, "Postmodern, Ranged, Ammunition, Reload", "DEX"),
+    ("Neutrino Beam", 18, "Postmodern, Ranged, Ammunition, Reload, Heavy, Piercing(4)", "STR"),
+    ("Quantum Blade", 13, "Postmodern, Melee, Finesse, Cleaving, Stealth", "DEX"),
+    ("Plasma Grenade", 11, "Postmodern, Thrown, Ranged, Ammunition", "DEX"),
+    ("EMP Rifle", 8, "Postmodern, Ranged, Ammunition, Reload, Piercing(1)", "DEX"),
+    ("Laser Cannon", 17, "Postmodern, Ranged, Ammunition, Reload, Heavy, Piercing(3)", "STR")
+]
+
+# Power list: index 0 corresponds to Frequency #1, etc.
+power_list = [
+    "Absolute Silence", "Adaptive Resistance", "Age Immunity", "Air Manipulation",
+    "Animal Communication", "Atomic Duplicate Fabrication", "Bodily Weapon Suite", "Cloning",
+    "Configurable General Locator", "Contagious Configurable Pathogen Generator", "CQC Correction System",
+    "Danger Sense", "Defense", "DNA Manipulation", "Earth Manipulation", "Eidetic Memory",
+    "Electricity Absorption", "Electricity Manipulation", "Energy Blasts", "Energy Form",
+    "Energy Steal", "Enhanced Awareness", "Enhanced Biometric Tracking", "Enhanced Fighting",
+    "Enhanced Fortitude", "Enhanced Great One Authority", "Enhanced Hearing", "Enhanced Intelligence",
+    "Enhanced Presence", "Enhanced Will", "Enhanced Smell/Taste", "Enhanced Speed",
+    "Enhanced Stamina", "Enhanced Strength", "Environmental Condition Generator",
+    "Extreme Temperature Immunity", "Fire Absorption", "Fire Manipulation", "Flight",
+    "Forcefield Projection", "Growth/Shrinking", "Hardlight Summoning", "Hawkeye", "Healing",
+    "Illusions", "Instant Information Internalization", "Invisibility", "Kinetic Absorption",
+    "Light Manipulation", "Local Environmental Control", "Luck Control", "Matter Absorption",
+    "Matter Transmutation", "Mind Control", "Mind Reading", "Nanite Cloud Control", "Nanite Nucleation",
+    "Nanite Nullification", "Nanite Overclock", "Nanoscopic Sight", "Personal Pocket Dimension",
+    "Personality Instinct", "Phasing", "Poison Immunity", "Portals", "Predictive Precognition",
+    "Predictive Premonition", "Projectile Reflect", "Proximity Alarm", "Psychometry",
+    "Radiation Immunity", "Regeneration", "Regenerative Immortality", "Repulsion Burst",
+    "Shapeshifting", "Skill Mastery", "Summon Micro Assistants", "Synaptic Regen",
+    "Tactical Targeting System", "Tag Tracker", "Technopathy", "Telekinesis", "Telepathy",
+    "Teleportation", "Unlimited Digestion", "Water Manipulation", "Water/Nutrient Recycle",
+    "Weather Manipulation", "Webbing", "X-ray Vision"
+]
+
+# ==========================
+# Advanced Powers Generation Functions
+# ==========================
+def generate_single_power(existing_powers):
+    while True:
+        r = random.randint(1, 100)
+        if 1 <= r <= 90:
+            return {'frequency': r, 'name': power_list[r-1], 'rank': 1, 'alpha': False}
+        elif 91 <= r <= 99:
+            if existing_powers:
+                chosen = random.choice(existing_powers)
+                chosen['rank'] += 1
+            return None
+        elif r == 100:
+            if existing_powers:
+                chosen = random.choice(existing_powers)
+                chosen['rank'] += 5
+                chosen['alpha'] = True
+                return None
+            else:
+                continue
+
+def generate_powers_advanced():
+    global global_powers
+    global_powers = []
+    try:
+        base_num = int(entry_power_base.get())
+        extra_chance = float(entry_power_extra.get())
+        extra_ranks_chance = float(entry_power_ranks.get())
+    except ValueError:
+        return
+    for i in range(base_num):
+        new_power = generate_single_power(global_powers)
+        if new_power is not None:
+            global_powers.append(new_power)
+        current_extra = extra_chance
+        while True:
+            roll = random.randint(1, 100)
+            if roll <= current_extra:
+                new_extra = generate_single_power(global_powers)
+                if new_extra is not None:
+                    global_powers.append(new_extra)
+                current_extra -= 1
+                if current_extra <= 0:
+                    break
+            else:
+                break
+    for power in global_powers:
+        while random.randint(1, 100) <= extra_ranks_chance:
+            power['rank'] += 1
+    consolidate_powers()
+    refresh_display()
+
+def consolidate_powers():
+    global global_powers
+    consolidated = {}
+    for power in global_powers:
+        key = (power['frequency'], power['name'])
+        if key in consolidated:
+            consolidated[key]['rank'] += power['rank']
+            if power.get('alpha', False):
+                consolidated[key]['alpha'] = True
+        else:
+            consolidated[key] = power.copy()
+    global_powers = list(consolidated.values())
+
+# ==========================
+# Advanced Armor Generation Function
+# ==========================
+def generate_armors_advanced():
+    global global_armor
+    try:
+        num_armors = int(entry_armor_num.get())
+    except ValueError:
+        num_armors = 1
+    specific_tags_str = entry_armor_tag.get().strip().lower()
+    if specific_tags_str:
+        specific_tags = [tag.strip() for tag in specific_tags_str.split(",") if tag.strip()]
+    else:
+        specific_tags = []
+    filtered = []
+    for armor in armors_data:
+        armor_tags = [t.lower() for t in armor[2]]
+        if all(req_tag in armor_tags for req_tag in specific_tags):
+            filtered.append(armor)
+    if not filtered:
+        filtered = armors_data
+    selected = []
+    for i in range(num_armors):
+        selected.append(random.choice(filtered))
+    global_armor = []
+    for armor in selected:
+        name, bonus, tags = armor
+        global_armor.append({
+            'name': name,
+            'bonus': bonus,
+            'tags': tags
+        })
+    refresh_display()
+
+# ==========================
+# Advanced Weapon Generation Function
+# ==========================
+def generate_weapons_advanced():
+    global global_weapons, weapons_data
+    try:
+        num_weapons = int(entry_weapon_num.get())
+    except ValueError:
+        num_weapons = 1
+    specific_tags_str = entry_weapon_tag.get().strip().lower()
+    if specific_tags_str:
+        required_tags = [tag.strip() for tag in specific_tags_str.split(",") if tag.strip()]
+    else:
+        required_tags = []
+    filtered = []
+    for weapon in weapons_data:
+        weapon_tags = weapon[2].lower() if weapon[2] else ""
+        if all(req_tag in weapon_tags for req_tag in required_tags):
+            filtered.append(weapon)
+    if not filtered:
+        filtered = weapons_data
+    selected = []
+    for i in range(num_weapons):
+        selected.append(random.choice(filtered))
+    global_weapons = []
+    for weapon in selected:
+        name, damage, tags, stat = weapon
+        global_weapons.append({"name": name, "damage": damage, "tags": tags, "stat": stat})
+    refresh_display()
+
+# ==========================
+# Root and Display Functions
+# ==========================
+def refresh_display():
+    if global_root is not None:
+        total_bonus = sum(armor['bonus'] for armor in global_armor) if global_armor else 0
+        total_dex_penalty = 0
+        total_agl_penalty = 0
+        total_speed_penalty = 0
+        if global_armor:
+            for armor in global_armor:
+                tags_lower = [t.lower() for t in armor['tags']]
+                if "power" in tags_lower:
+                    penalty_dex = 0
+                    penalty_agl = 0
+                    penalty_speed = 0
+                else:
+                    if "medium" in tags_lower:
+                        penalty_dex = -1
+                        penalty_agl = -1
+                        penalty_speed = 0
+                    elif "heavy" in tags_lower:
+                        penalty_dex = -3
+                        penalty_agl = -3
+                        penalty_speed = -5
+                    else:
+                        penalty_dex = 0
+                        penalty_agl = 0
+                        penalty_speed = 0
+                total_dex_penalty += penalty_dex
+                total_agl_penalty += penalty_agl
+                total_speed_penalty += penalty_speed
+        base_agl = global_root['AGL']
+        effective_agl = base_agl + total_agl_penalty
+        agl_display = f"{base_agl}+(AGL){total_agl_penalty}({effective_agl})"
+        base_dex = global_root['DEX']
+        effective_dex = base_dex + total_dex_penalty
+        dex_display = f"{base_dex}+(DEX){total_dex_penalty}({effective_dex})"
+        base_sta = global_root['STA']
+        toughness_total = base_sta + total_bonus
+        toughness_display = f"{base_sta}+A{total_bonus}({toughness_total})"
+        effective_speed = 30 + total_speed_penalty
+        speed_display = f"({effective_speed})"
+        root_line = (f"STR:{global_root['STR']} "
+                     f"AGL:{agl_display} "
+                     f"FGT:{global_root['FGT']} "
+                     f"AWE:{global_root['AWE']} "
+                     f"STA:{global_root['STA']} "
+                     f"DEX:{dex_display} "
+                     f"INT:{global_root['INT']} "
+                     f"PRE:{global_root['PRE']}")
+        derived_line = (f"Dodge:{global_root['Dodge']} "
+                        f"Parry:{global_root['Parry']} "
+                        f"Fortitude:{global_root['Fortitude']} "
+                        f"Toughness:{toughness_display} "
+                        f"Will:{global_root['Will']} "
+                        f"Speed:{speed_display}")
+    else:
+        root_line = ("STR: None AGL: None FGT: None AWE: None STA: None "
+                     "DEX: None INT: None PRE: None")
+        derived_line = ("Dodge: None Parry: None Fortitude: None Toughness: None Will: None Speed: None")
+    if global_armor and len(global_armor) > 0:
+        armor_lines = []
+        for armor in global_armor:
+            armor_lines.append(f"- {armor['name']} (Bonus: +{armor['bonus']}) [{', '.join(armor['tags'])}]")
+        armor_section = "Armor:\n" + "\n".join(armor_lines)
+    else:
+        armor_section = "Armor:\nNone"
+    if global_weapons:
+        weapons_lines = []
+        for weapon in global_weapons:
+            base_damage = weapon['damage']
+            effective_damage = base_damage
+            mod_display = ""
+            if global_root is not None:
+                if weapon['stat'] == "STR":
+                    mod = global_root['STR']
+                    effective_damage = base_damage + mod
+                    mod_display = f"{base_damage}+(STR){mod}({effective_damage})"
+                elif weapon['stat'] == "DEX" and "finesse" in weapon['tags'].lower():
+                    mod = global_root['DEX']
+                    effective_damage = base_damage + mod
+                    mod_display = f"{base_damage}+(DEX){mod}({effective_damage})"
+                else:
+                    mod_display = f"{base_damage}"
+            else:
+                mod_display = f"{base_damage}"
+            dc_damage = effective_damage + 15
+            tag_str = f", Tags: {weapon['tags']}" if weapon['tags'] else ""
+            weapons_lines.append(f"- {weapon['name']} (Damage: {mod_display}(DC{dc_damage}){tag_str})")
+        weapons_section = "Weapons:\n" + "\n".join(weapons_lines)
+    else:
+        weapons_section = "Weapons:\nNone"
+    if global_powers:
+        powers_lines = []
+        for power in global_powers:
+            alpha_str = " ALPHA" if power.get('alpha', False) else ""
+            powers_lines.append(f"{power['rank']} #{power['frequency']} {power['name']}{alpha_str}")
+        powers_section = "Powers:\n" + "\n".join(powers_lines)
+    else:
+        powers_section = "Powers:\nNone"
+    output_text = f"{root_line}\n{derived_line}\n{armor_section}\n{weapons_section}\n{powers_section}\n"
+    output_box.delete("1.0", tk.END)
+    output_box.insert(tk.END, output_text)
+
+def generate_root():
+    global global_root
+    STR = random.randint(-3, 4)
+    AGL = random.randint(-3, 4)
+    FGT = random.randint(-3, 4)
+    AWE = random.randint(-3, 4)
+    STA = random.randint(-3, 4)
+    DEX = random.randint(-3, 4)
+    INT = random.randint(-3, 4)
+    PRE = random.randint(-3, 4)
+    Dodge = AGL + random.randint(0, 6)
+    Parry = FGT + random.randint(0, 6)
+    Fortitude = STA + random.randint(0, 6)
+    Will = AWE + random.randint(0, 6)
+    total_bonus = sum(armor['bonus'] for armor in global_armor) if global_armor else 0
+    Toughness = STA + total_bonus
+    global_root = {'STR': STR, 'AGL': AGL, 'FGT': FGT, 'AWE': AWE,
+                   'STA': STA, 'DEX': DEX, 'INT': INT, 'PRE': PRE,
+                   'Dodge': Dodge, 'Parry': Parry, 'Fortitude': Fortitude,
+                   'Will': Will, 'Toughness': Toughness}
+    entry_str.delete(0, tk.END); entry_str.insert(0, str(STR))
+    entry_agl.delete(0, tk.END); entry_agl.insert(0, str(AGL))
+    entry_fgt.delete(0, tk.END); entry_fgt.insert(0, str(FGT))
+    entry_awe.delete(0, tk.END); entry_awe.insert(0, str(AWE))
+    entry_sta.delete(0, tk.END); entry_sta.insert(0, str(STA))
+    entry_dex.delete(0, tk.END); entry_dex.insert(0, str(DEX))
+    entry_int.delete(0, tk.END); entry_int.insert(0, str(INT))
+    entry_pre.delete(0, tk.END); entry_pre.insert(0, str(PRE))
+    refresh_display()
+
+def generate_weapons():
+    generate_weapons_advanced()
+
+def update_root():
+    global global_root
+    if global_root is None:
+        return
+    try:
+        new_str = int(entry_str.get())
+        new_agl = int(entry_agl.get())
+        new_fgt = int(entry_fgt.get())
+        new_awe = int(entry_awe.get())
+        new_sta = int(entry_sta.get())
+        new_dex = int(entry_dex.get())
+        new_int = int(entry_int.get())
+        new_pre = int(entry_pre.get())
+    except ValueError:
+        return
+    global_root['STR'] = new_str
+    global_root['AGL'] = new_agl
+    global_root['FGT'] = new_fgt
+    global_root['AWE'] = new_awe
+    global_root['STA'] = new_sta
+    global_root['DEX'] = new_dex
+    global_root['INT'] = new_int
+    global_root['PRE'] = new_pre
+    global_root['Dodge'] = new_agl + random.randint(0, 6)
+    global_root['Parry'] = new_fgt + random.randint(0, 6)
+    global_root['Fortitude'] = new_sta + random.randint(0, 6)
+    global_root['Will'] = new_awe + random.randint(0, 6)
+    total_bonus = sum(armor['bonus'] for armor in global_armor) if global_armor else 0
+    global_root['Toughness'] = new_sta + total_bonus
+    refresh_display()
+
+def clear_root():
+    global global_root
+    global_root = None
+    refresh_display()
+
+def clear_armor():
+    global global_armor
+    global_armor = []
+    refresh_display()
+
+def clear_weapons():
+    global global_weapons
+    global_weapons = []
+    refresh_display()
+
+def clear_powers():
+    global global_powers
+    global_powers = []
+    refresh_display()
+
+def clear_all():
+    global global_root, global_armor, global_weapons, global_powers
+    global_root = None
+    global_armor = []
+    global_weapons = []
+    global_powers = []
+    refresh_display()
+
+# ==========================
+# Preset Saving/Loading Functions
+# ==========================
+def load_presets():
+    global presets
+    if os.path.exists(presets_file):
+        try:
+            with open(presets_file, "r") as f:
+                presets = json.load(f)
+        except Exception as e:
+            print("Error loading presets:", e)
+            presets = {"root": {}, "armor": {}, "weapon": {}, "power": {}}
+    else:
+        presets = {"root": {}, "armor": {}, "weapon": {}, "power": {}}
+    update_all_preset_menus()
+
+def save_presets_to_file():
+    try:
+        with open(presets_file, "w") as f:
+            json.dump(presets, f, indent=2)
+    except Exception as e:
+        print("Error saving presets:", e)
+
+def save_root_preset():
+    global presets
+    preset_name = simpledialog.askstring("Save Root Preset", "Enter preset name:")
+    if not preset_name:
+        return
+    presets["root"][preset_name] = {
+        "STR": entry_str.get(),
+        "AGL": entry_agl.get(),
+        "FGT": entry_fgt.get(),
+        "AWE": entry_awe.get(),
+        "STA": entry_sta.get(),
+        "DEX": entry_dex.get(),
+        "INT": entry_int.get(),
+        "PRE": entry_pre.get()
+    }
+    save_presets_to_file()
+    update_preset_menu("root")
+
+def load_root_preset(preset_name):
+    if preset_name in presets["root"]:
+        data = presets["root"][preset_name]
+        entry_str.delete(0, tk.END); entry_str.insert(0, data["STR"])
+        entry_agl.delete(0, tk.END); entry_agl.insert(0, data["AGL"])
+        entry_fgt.delete(0, tk.END); entry_fgt.insert(0, data["FGT"])
+        entry_awe.delete(0, tk.END); entry_awe.insert(0, data["AWE"])
+        entry_sta.delete(0, tk.END); entry_sta.insert(0, data["STA"])
+        entry_dex.delete(0, tk.END); entry_dex.insert(0, data["DEX"])
+        entry_int.delete(0, tk.END); entry_int.insert(0, data["INT"])
+        entry_pre.delete(0, tk.END); entry_pre.insert(0, data["PRE"])
+
+def save_armor_preset():
+    global presets
+    preset_name = simpledialog.askstring("Save Armor Preset", "Enter preset name:")
+    if not preset_name:
+        return
+    presets["armor"][preset_name] = {
+        "number": entry_armor_num.get(),
+        "tags": entry_armor_tag.get()
+    }
+    save_presets_to_file()
+    update_preset_menu("armor")
+
+def load_armor_preset(preset_name):
+    if preset_name in presets["armor"]:
+        data = presets["armor"][preset_name]
+        entry_armor_num.delete(0, tk.END); entry_armor_num.insert(0, data["number"])
+        entry_armor_tag.delete(0, tk.END); entry_armor_tag.insert(0, data["tags"])
+
+def save_weapon_preset():
+    global presets
+    preset_name = simpledialog.askstring("Save Weapon Preset", "Enter preset name:")
+    if not preset_name:
+        return
+    presets["weapon"][preset_name] = {
+        "number": entry_weapon_num.get(),
+        "tags": entry_weapon_tag.get()
+    }
+    save_presets_to_file()
+    update_preset_menu("weapon")
+
+def load_weapon_preset(preset_name):
+    if preset_name in presets["weapon"]:
+        data = presets["weapon"][preset_name]
+        entry_weapon_num.delete(0, tk.END); entry_weapon_num.insert(0, data["number"])
+        entry_weapon_tag.delete(0, tk.END); entry_weapon_tag.insert(0, data["tags"])
+
+def save_power_preset():
+    global presets
+    preset_name = simpledialog.askstring("Save Power Preset", "Enter preset name:")
+    if not preset_name:
+        return
+    presets["power"][preset_name] = {
+        "base": entry_power_base.get(),
+        "extra": entry_power_extra.get(),
+        "extra_ranks": entry_power_ranks.get()
+    }
+    save_presets_to_file()
+    update_preset_menu("power")
+
+def load_power_preset(preset_name):
+    if preset_name in presets["power"]:
+        data = presets["power"][preset_name]
+        entry_power_base.delete(0, tk.END); entry_power_base.insert(0, data["base"])
+        entry_power_extra.delete(0, tk.END); entry_power_extra.insert(0, data["extra"])
+        entry_power_ranks.delete(0, tk.END); entry_power_ranks.insert(0, data["extra_ranks"])
+
+# OptionMenus for presets; these will be created after the root window exists.
+# We define update functions for each panel.
+def update_preset_menu(panel):
+    if panel == "root":
+        menu = root_preset_menu["menu"]
+        menu.delete(0, "end")
+        for name in presets["root"]:
+            menu.add_command(label=name, command=lambda value=name: (root_preset_var.set(value), load_root_preset(value)))
+    elif panel == "armor":
+        menu = armor_preset_menu["menu"]
+        menu.delete(0, "end")
+        for name in presets["armor"]:
+            menu.add_command(label=name, command=lambda value=name: (armor_preset_var.set(value), load_armor_preset(value)))
+    elif panel == "weapon":
+        menu = weapon_preset_menu["menu"]
+        menu.delete(0, "end")
+        for name in presets["weapon"]:
+            menu.add_command(label=name, command=lambda value=name: (weapon_preset_var.set(value), load_weapon_preset(value)))
+    elif panel == "power":
+        menu = power_preset_menu["menu"]
+        menu.delete(0, "end")
+        for name in presets["power"]:
+            menu.add_command(label=name, command=lambda value=name: (power_preset_var.set(value), load_power_preset(value)))
+
+def update_all_preset_menus():
+    update_preset_menu("root")
+    update_preset_menu("armor")
+    update_preset_menu("weapon")
+    update_preset_menu("power")
+
+# Load presets from file.
+def load_presets():
+    global presets
+    if os.path.exists(presets_file):
+        try:
+            with open(presets_file, "r") as f:
+                presets = json.load(f)
+        except Exception as e:
+            print("Error loading presets:", e)
+            presets = {"root": {}, "armor": {}, "weapon": {}, "power": {}}
+    else:
+        presets = {"root": {}, "armor": {}, "weapon": {}, "power": {}}
+    update_all_preset_menus()
+
+def save_presets_to_file():
+    try:
+        with open(presets_file, "w") as f:
+            json.dump(presets, f, indent=2)
+    except Exception as e:
+        print("Error saving presets:", e)
+
+# ==========================
+# Main GUI Setup (Reordered Layout)
+# ==========================
+if __name__ == '__main__':
+    # Create the root window first.
+    root = tk.Tk()
+    root.title("Character Generator")
+
+    # Create preset variables (pass master=root).
+    root_preset_var = tk.StringVar(root)
+    armor_preset_var = tk.StringVar(root)
+    weapon_preset_var = tk.StringVar(root)
+    power_preset_var = tk.StringVar(root)
+
+    # Main container with two columns: Left (controls) and Right (output)
+    main_frame = tk.Frame(root)
+    main_frame.pack(fill=tk.BOTH, expand=True)
+
+    # Right Frame: Output box and Clear All button
+    output_frame = tk.Frame(main_frame)
+    output_frame.pack(side=tk.RIGHT, fill=tk.BOTH, expand=True, padx=5, pady=5)
+    output_box = tk.Text(output_frame, width=80, height=25)
+    output_box.pack(padx=5, pady=5)
+    btn_clear_all = tk.Button(output_frame, text="Clear All", command=clear_all)
+    btn_clear_all.pack(pady=5)
+
+    # Left Frame: Controls (stacked vertically)
+    control_frame = tk.Frame(main_frame)
+    control_frame.pack(side=tk.LEFT, fill=tk.Y, padx=5, pady=5)
+
+    # --- Root Editor Subframe ---
+    root_editor_frame = tk.LabelFrame(control_frame, text="Root Editor")
+    root_editor_frame.pack(fill=tk.X, padx=5, pady=5)
+    tk.Label(root_editor_frame, text="STR:").grid(row=0, column=0)
+    entry_str = tk.Entry(root_editor_frame, width=3)
+    entry_str.grid(row=0, column=1)
+    tk.Label(root_editor_frame, text="AGL:").grid(row=0, column=2)
+    entry_agl = tk.Entry(root_editor_frame, width=3)
+    entry_agl.grid(row=0, column=3)
+    tk.Label(root_editor_frame, text="FGT:").grid(row=0, column=4)
+    entry_fgt = tk.Entry(root_editor_frame, width=3)
+    entry_fgt.grid(row=0, column=5)
+    tk.Label(root_editor_frame, text="AWE:").grid(row=0, column=6)
+    entry_awe = tk.Entry(root_editor_frame, width=3)
+    entry_awe.grid(row=0, column=7)
+    tk.Label(root_editor_frame, text="STA:").grid(row=1, column=0)
+    entry_sta = tk.Entry(root_editor_frame, width=3)
+    entry_sta.grid(row=1, column=1)
+    tk.Label(root_editor_frame, text="DEX:").grid(row=1, column=2)
+    entry_dex = tk.Entry(root_editor_frame, width=3)
+    entry_dex.grid(row=1, column=3)
+    tk.Label(root_editor_frame, text="INT:").grid(row=1, column=4)
+    entry_int = tk.Entry(root_editor_frame, width=3)
+    entry_int.grid(row=1, column=5)
+    tk.Label(root_editor_frame, text="PRE:").grid(row=1, column=6)
+    entry_pre = tk.Entry(root_editor_frame, width=3)
+    entry_pre.grid(row=1, column=7)
+    btn_generate_root = tk.Button(root_editor_frame, text="Generate Root", command=generate_root)
+    btn_generate_root.grid(row=2, column=0, columnspan=4, pady=5)
+    btn_update_root = tk.Button(root_editor_frame, text="Update Root Attributes", command=update_root)
+    btn_update_root.grid(row=2, column=4, columnspan=4, pady=5)
+    btn_clear_root = tk.Button(root_editor_frame, text="Clear Root", command=clear_root)
+    btn_clear_root.grid(row=3, column=0, columnspan=8, pady=5)
+    tk.Label(root_editor_frame, text="Save Preset:").grid(row=4, column=0, columnspan=2)
+    btn_save_root = tk.Button(root_editor_frame, text="Save", command=save_root_preset)
+    btn_save_root.grid(row=4, column=2, columnspan=2)
+    root_preset_menu = tk.OptionMenu(root_editor_frame, root_preset_var, "")
+    root_preset_menu.grid(row=4, column=4, columnspan=4)
+
+    # --- Armor Generation Controls Subframe ---
+    armor_gen_frame = tk.LabelFrame(control_frame, text="Armor Generation Controls")
+    armor_gen_frame.pack(fill=tk.X, padx=5, pady=5)
+    tk.Label(armor_gen_frame, text="Number of Armors:").grid(row=0, column=0)
+    entry_armor_num = tk.Entry(armor_gen_frame, width=3)
+    entry_armor_num.grid(row=0, column=1)
+    tk.Label(armor_gen_frame, text="Specific Tags (comma delimited):").grid(row=0, column=2)
+    entry_armor_tag = tk.Entry(armor_gen_frame, width=15)
+    entry_armor_tag.grid(row=0, column=3)
+    btn_generate_armors = tk.Button(armor_gen_frame, text="Generate Armors", command=generate_armors_advanced)
+    btn_generate_armors.grid(row=0, column=4, padx=5)
+    btn_clear_armor = tk.Button(armor_gen_frame, text="Clear Armors", command=clear_armor)
+    btn_clear_armor.grid(row=1, column=0, columnspan=5, pady=5)
+    tk.Label(armor_gen_frame, text="Save Preset:").grid(row=2, column=0, columnspan=2)
+    btn_save_armor = tk.Button(armor_gen_frame, text="Save", command=save_armor_preset)
+    btn_save_armor.grid(row=2, column=2, columnspan=2)
+    armor_preset_menu = tk.OptionMenu(armor_gen_frame, armor_preset_var, "")
+    armor_preset_menu.grid(row=2, column=4, columnspan=2)
+
+    # --- Weapon Generation Controls Subframe ---
+    weapon_gen_frame = tk.LabelFrame(control_frame, text="Weapon Generation Controls")
+    weapon_gen_frame.pack(fill=tk.X, padx=5, pady=5)
+    tk.Label(weapon_gen_frame, text="Number of Weapons:").grid(row=0, column=0)
+    entry_weapon_num = tk.Entry(weapon_gen_frame, width=3)
+    entry_weapon_num.grid(row=0, column=1)
+    tk.Label(weapon_gen_frame, text="Specific Tags (comma delimited):").grid(row=0, column=2)
+    entry_weapon_tag = tk.Entry(weapon_gen_frame, width=15)
+    entry_weapon_tag.grid(row=0, column=3)
+    btn_generate_weapons = tk.Button(weapon_gen_frame, text="Generate Weapons", command=generate_weapons_advanced)
+    btn_generate_weapons.grid(row=0, column=4, padx=5)
+    btn_clear_weapons = tk.Button(weapon_gen_frame, text="Clear Weapons", command=clear_weapons)
+    btn_clear_weapons.grid(row=1, column=0, columnspan=5, pady=5)
+    tk.Label(weapon_gen_frame, text="Save Preset:").grid(row=2, column=0, columnspan=2)
+    btn_save_weapon = tk.Button(weapon_gen_frame, text="Save", command=save_weapon_preset)
+    btn_save_weapon.grid(row=2, column=2, columnspan=2)
+    weapon_preset_menu = tk.OptionMenu(weapon_gen_frame, weapon_preset_var, "")
+    weapon_preset_menu.grid(row=2, column=4, columnspan=2)
+
+    # --- Power Generation Controls Subframe ---
+    power_gen_frame = tk.LabelFrame(control_frame, text="Power Generation Controls")
+    power_gen_frame.pack(fill=tk.X, padx=5, pady=5)
+    tk.Label(power_gen_frame, text="Base Powers:").grid(row=0, column=0)
+    entry_power_base = tk.Entry(power_gen_frame, width=3)
+    entry_power_base.grid(row=0, column=1)
+    tk.Label(power_gen_frame, text="Extra Chance %:").grid(row=0, column=2)
+    entry_power_extra = tk.Entry(power_gen_frame, width=3)
+    entry_power_extra.grid(row=0, column=3)
+    tk.Label(power_gen_frame, text="Extra Ranks %:").grid(row=0, column=4)
+    entry_power_ranks = tk.Entry(power_gen_frame, width=3)
+    entry_power_ranks.grid(row=0, column=5)
+    btn_generate_powers = tk.Button(power_gen_frame, text="Generate Powers", command=generate_powers_advanced)
+    btn_generate_powers.grid(row=0, column=6, padx=5)
+    btn_clear_powers = tk.Button(power_gen_frame, text="Clear Powers", command=clear_powers)
+    btn_clear_powers.grid(row=1, column=0, columnspan=7, pady=5)
+    tk.Label(power_gen_frame, text="Save Preset:").grid(row=2, column=0, columnspan=2)
+    btn_save_power = tk.Button(power_gen_frame, text="Save", command=save_power_preset)
+    btn_save_power.grid(row=2, column=2, columnspan=2)
+    power_preset_menu = tk.OptionMenu(power_gen_frame, power_preset_var, "")
+    power_preset_menu.grid(row=2, column=4, columnspan=2)
+
+    # Load presets from file and update all preset menus.
+    load_presets()
+
+    update_all_preset_menus()
+    root.mainloop()
