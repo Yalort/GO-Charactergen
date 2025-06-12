@@ -1,5 +1,6 @@
 import tkinter as tk
 import tkinter.simpledialog as simpledialog
+import tkinter.ttk as ttk
 import random, os, json
 
 # ==========================
@@ -9,6 +10,7 @@ global_root = None      # Dictionary for root stats and derived values.
 global_armor = []       # List of armor dictionaries.
 global_weapons = []     # List of weapon dictionaries.
 global_powers = []      # List of power dictionaries.
+characters = {}         # Saved characters
 
 # ==========================
 # Presets Data and File Path
@@ -17,6 +19,7 @@ presets = {"root": {}, "armor": {}, "weapon": {}, "power": {}}
 presets_dir = os.path.join(os.path.expanduser("~"), "Documents", "GOsCharacterGen")
 presets_file = os.path.join(presets_dir, "presets.json")
 os.makedirs(presets_dir, exist_ok=True)
+characters_file = os.path.join(presets_dir, "characters.json")
 
 # ==========================
 # Data Definitions
@@ -537,6 +540,116 @@ def save_presets_to_file():
     except Exception as e:
         print("Error saving presets:", e)
 
+# ==========================
+# Character Saving/Loading Functions
+# ==========================
+def load_characters():
+    global characters
+    if os.path.exists(characters_file):
+        try:
+            with open(characters_file, "r") as f:
+                characters = json.load(f)
+        except Exception as e:
+            print("Error loading characters:", e)
+            characters = {}
+    else:
+        characters = {}
+    update_character_list()
+
+def save_characters_to_file():
+    try:
+        with open(characters_file, "w") as f:
+            json.dump(characters, f, indent=2)
+    except Exception as e:
+        print("Error saving characters:", e)
+
+def save_character():
+    if global_root is None:
+        return
+    name = simpledialog.askstring("Save Character", "Enter character name:")
+    if not name:
+        return
+    tag_str = simpledialog.askstring("Save Character", "Enter tags (comma separated):")
+    tags = []
+    if tag_str:
+        tags = [t.strip() for t in tag_str.split(',') if t.strip()]
+    characters[name] = {
+        "tags": tags,
+        "root": global_root,
+        "armor": global_armor,
+        "weapons": global_weapons,
+        "powers": global_powers
+    }
+    save_characters_to_file()
+    update_character_list()
+
+def delete_character():
+    if not characters_listbox.curselection():
+        return
+    name = characters_listbox.get(characters_listbox.curselection()[0])
+    if name in characters:
+        del characters[name]
+        save_characters_to_file()
+        update_character_list()
+        character_display.delete("1.0", tk.END)
+
+def character_to_text(data):
+    lines = []
+    root_stats = data.get("root")
+    if root_stats:
+        line1 = (
+            f"STR:{root_stats['STR']} AGL:{root_stats['AGL']} "
+            f"FGT:{root_stats['FGT']} AWE:{root_stats['AWE']} "
+            f"STA:{root_stats['STA']} DEX:{root_stats['DEX']} "
+            f"INT:{root_stats['INT']} PRE:{root_stats['PRE']}"
+        )
+        line2 = (
+            f"Dodge:{root_stats['Dodge']} Parry:{root_stats['Parry']} "
+            f"Fortitude:{root_stats['Fortitude']} Toughness:{root_stats['Toughness']} "
+            f"Will:{root_stats['Will']}"
+        )
+        lines.extend([line1, line2])
+    armor_list = data.get("armor", [])
+    if armor_list:
+        armor_lines = [f"- {a['name']} (+{a['bonus']}) [{', '.join(a['tags'])}]" for a in armor_list]
+        lines.append("Armor:\n" + "\n".join(armor_lines))
+    else:
+        lines.append("Armor:\nNone")
+    weapon_list = data.get("weapons", [])
+    if weapon_list:
+        weapon_lines = [f"- {w['name']} (Damage: {w['damage']})" for w in weapon_list]
+        lines.append("Weapons:\n" + "\n".join(weapon_lines))
+    else:
+        lines.append("Weapons:\nNone")
+    power_list_data = data.get("powers", [])
+    if power_list_data:
+        power_lines = [f"{p['rank']} #{p['frequency']} {p['name']}" for p in power_list_data]
+        lines.append("Powers:\n" + "\n".join(power_lines))
+    else:
+        lines.append("Powers:\nNone")
+    return "\n".join(lines)
+
+def on_character_select(event=None):
+    if not characters_listbox.curselection():
+        return
+    name = characters_listbox.get(characters_listbox.curselection()[0])
+    data = characters.get(name)
+    if not data:
+        return
+    character_display.delete("1.0", tk.END)
+    character_display.insert(tk.END, character_to_text(data))
+
+def update_character_list(filter_text=""):
+    characters_listbox.delete(0, tk.END)
+    ft = filter_text.lower()
+    for name, data in characters.items():
+        tags = ' '.join(data.get('tags', []))
+        if ft:
+            if ft in name.lower() or ft in tags.lower():
+                characters_listbox.insert(tk.END, name)
+        else:
+            characters_listbox.insert(tk.END, name)
+
 def save_root_preset():
     global presets
     preset_name = simpledialog.askstring("Save Root Preset", "Enter preset name:")
@@ -688,18 +801,23 @@ def save_presets_to_file():
 # Main GUI Setup (Reordered Layout)
 # ==========================
 if __name__ == '__main__':
-    # Create the root window first.
     root = tk.Tk()
     root.title("Character Generator")
 
-    # Create preset variables (pass master=root).
+    notebook = ttk.Notebook(root)
+    notebook.pack(fill=tk.BOTH, expand=True)
+
+    generator_tab = ttk.Frame(notebook)
+    characters_tab = ttk.Frame(notebook)
+    notebook.add(generator_tab, text="Generator")
+    notebook.add(characters_tab, text="Characters")
+
     root_preset_var = tk.StringVar(root)
     armor_preset_var = tk.StringVar(root)
     weapon_preset_var = tk.StringVar(root)
     power_preset_var = tk.StringVar(root)
 
-    # Main container with two columns: Left (controls) and Right (output)
-    main_frame = tk.Frame(root)
+    main_frame = tk.Frame(generator_tab)
     main_frame.pack(fill=tk.BOTH, expand=True)
 
     # Right Frame: Output box and Clear All button
@@ -830,8 +948,27 @@ if __name__ == '__main__':
     power_preset_menu = tk.OptionMenu(power_gen_frame, power_preset_var, "")
     power_preset_menu.grid(row=2, column=4, columnspan=2)
 
-    # Load presets from file and update all preset menus.
-    load_presets()
+    # --- Characters Tab ---
+    search_var = tk.StringVar()
+    search_entry = tk.Entry(characters_tab, textvariable=search_var)
+    search_entry.pack(fill=tk.X, padx=5, pady=5)
+    search_entry.bind("<KeyRelease>", lambda e: update_character_list(search_var.get()))
 
+    characters_listbox = tk.Listbox(characters_tab)
+    characters_listbox.pack(fill=tk.BOTH, expand=True, padx=5, pady=5)
+    characters_listbox.bind("<<ListboxSelect>>", on_character_select)
+
+    character_display = tk.Text(characters_tab, height=15)
+    character_display.pack(fill=tk.BOTH, expand=True, padx=5, pady=5)
+
+    char_btn_frame = tk.Frame(characters_tab)
+    char_btn_frame.pack(pady=5)
+    btn_save_char = tk.Button(char_btn_frame, text="Save Current Character", command=save_character)
+    btn_save_char.pack(side=tk.LEFT, padx=5)
+    btn_delete_char = tk.Button(char_btn_frame, text="Delete Selected", command=delete_character)
+    btn_delete_char.pack(side=tk.LEFT, padx=5)
+
+    load_presets()
+    load_characters()
     update_all_preset_menus()
     root.mainloop()
