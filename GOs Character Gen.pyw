@@ -451,10 +451,13 @@ def update_root():
         new_dodge = int(entry_dodge.get())
         new_parry = int(entry_parry.get())
         new_fortitude = int(entry_fortitude.get())
-        new_toughness = int(entry_toughness.get())
         new_will = int(entry_will.get())
     except ValueError:
         return
+    total_bonus = sum(armor['bonus'] for armor in global_armor) if global_armor else 0
+    new_toughness = new_sta + total_bonus
+    entry_toughness.delete(0, tk.END)
+    entry_toughness.insert(0, str(new_toughness))
     global_root['STR'] = new_str
     global_root['AGL'] = new_agl
     global_root['FGT'] = new_fgt
