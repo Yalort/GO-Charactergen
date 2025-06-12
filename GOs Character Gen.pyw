@@ -341,11 +341,11 @@ def refresh_display():
         parry_total = global_root['Parry'] + global_root['FGT']
         fortitude_total = global_root['Fortitude'] + global_root['STA']
         will_total = global_root['Will'] + global_root['AWE']
-        derived_line = (f"Dodge:{global_root['Dodge']}+(AGL){global_root['AGL']}({dodge_total}) "
-                        f"Parry:{global_root['Parry']}+(FGT){global_root['FGT']}({parry_total}) "
-                        f"Fortitude:{global_root['Fortitude']}+(STA){global_root['STA']}({fortitude_total}) "
-                        f"Toughness:{toughness_display} "
-                        f"Will:{global_root['Will']}+(AWE){global_root['AWE']}({will_total}) "
+        derived_line = (f"Dodge:{dodge_total} "
+                        f"Parry:{parry_total} "
+                        f"Fortitude:{fortitude_total} "
+                        f"Toughness:{toughness_total} "
+                        f"Will:{will_total} "
                         f"Speed:{speed_display}")
     else:
         root_line = ("STR: None AGL: None FGT: None AWE: None STA: None "
