@@ -407,10 +407,12 @@ def generate_root():
     Will = AWE + random.randint(0, 6)
     total_bonus = sum(armor['bonus'] for armor in global_armor) if global_armor else 0
     Toughness = STA + total_bonus
-    global_root = {'STR': STR, 'AGL': AGL, 'FGT': FGT, 'AWE': AWE,
-                   'STA': STA, 'DEX': DEX, 'INT': INT, 'PRE': PRE,
-                   'Dodge': Dodge, 'Parry': Parry, 'Fortitude': Fortitude,
-                   'Will': Will, 'Toughness': Toughness}
+    global_root = {
+        'STR': STR, 'AGL': AGL, 'FGT': FGT, 'AWE': AWE,
+        'STA': STA, 'DEX': DEX, 'INT': INT, 'PRE': PRE,
+        'Dodge': Dodge, 'Parry': Parry, 'Fortitude': Fortitude,
+        'Will': Will, 'Toughness': Toughness
+    }
     entry_str.delete(0, tk.END); entry_str.insert(0, str(STR))
     entry_agl.delete(0, tk.END); entry_agl.insert(0, str(AGL))
     entry_fgt.delete(0, tk.END); entry_fgt.insert(0, str(FGT))
@@ -419,6 +421,11 @@ def generate_root():
     entry_dex.delete(0, tk.END); entry_dex.insert(0, str(DEX))
     entry_int.delete(0, tk.END); entry_int.insert(0, str(INT))
     entry_pre.delete(0, tk.END); entry_pre.insert(0, str(PRE))
+    entry_dodge.delete(0, tk.END); entry_dodge.insert(0, str(Dodge))
+    entry_parry.delete(0, tk.END); entry_parry.insert(0, str(Parry))
+    entry_fortitude.delete(0, tk.END); entry_fortitude.insert(0, str(Fortitude))
+    entry_toughness.delete(0, tk.END); entry_toughness.insert(0, str(Toughness))
+    entry_will.delete(0, tk.END); entry_will.insert(0, str(Will))
     refresh_display()
 
 def generate_weapons():
@@ -437,6 +444,11 @@ def update_root():
         new_dex = int(entry_dex.get())
         new_int = int(entry_int.get())
         new_pre = int(entry_pre.get())
+        new_dodge = int(entry_dodge.get())
+        new_parry = int(entry_parry.get())
+        new_fortitude = int(entry_fortitude.get())
+        new_toughness = int(entry_toughness.get())
+        new_will = int(entry_will.get())
     except ValueError:
         return
     global_root['STR'] = new_str
@@ -447,17 +459,29 @@ def update_root():
     global_root['DEX'] = new_dex
     global_root['INT'] = new_int
     global_root['PRE'] = new_pre
-    global_root['Dodge'] = new_agl + random.randint(0, 6)
-    global_root['Parry'] = new_fgt + random.randint(0, 6)
-    global_root['Fortitude'] = new_sta + random.randint(0, 6)
-    global_root['Will'] = new_awe + random.randint(0, 6)
-    total_bonus = sum(armor['bonus'] for armor in global_armor) if global_armor else 0
-    global_root['Toughness'] = new_sta + total_bonus
+    global_root['Dodge'] = new_dodge
+    global_root['Parry'] = new_parry
+    global_root['Fortitude'] = new_fortitude
+    global_root['Toughness'] = new_toughness
+    global_root['Will'] = new_will
     refresh_display()
 
 def clear_root():
     global global_root
     global_root = None
+    entry_str.delete(0, tk.END)
+    entry_agl.delete(0, tk.END)
+    entry_fgt.delete(0, tk.END)
+    entry_awe.delete(0, tk.END)
+    entry_sta.delete(0, tk.END)
+    entry_dex.delete(0, tk.END)
+    entry_int.delete(0, tk.END)
+    entry_pre.delete(0, tk.END)
+    entry_dodge.delete(0, tk.END)
+    entry_parry.delete(0, tk.END)
+    entry_fortitude.delete(0, tk.END)
+    entry_toughness.delete(0, tk.END)
+    entry_will.delete(0, tk.END)
     refresh_display()
 
 def clear_armor():
@@ -519,7 +543,12 @@ def save_root_preset():
         "STA": entry_sta.get(),
         "DEX": entry_dex.get(),
         "INT": entry_int.get(),
-        "PRE": entry_pre.get()
+        "PRE": entry_pre.get(),
+        "Dodge": entry_dodge.get(),
+        "Parry": entry_parry.get(),
+        "Fortitude": entry_fortitude.get(),
+        "Toughness": entry_toughness.get(),
+        "Will": entry_will.get()
     }
     save_presets_to_file()
     update_preset_menu("root")
@@ -535,6 +564,11 @@ def load_root_preset(preset_name):
         entry_dex.delete(0, tk.END); entry_dex.insert(0, data["DEX"])
         entry_int.delete(0, tk.END); entry_int.insert(0, data["INT"])
         entry_pre.delete(0, tk.END); entry_pre.insert(0, data["PRE"])
+        entry_dodge.delete(0, tk.END); entry_dodge.insert(0, data.get("Dodge", ""))
+        entry_parry.delete(0, tk.END); entry_parry.insert(0, data.get("Parry", ""))
+        entry_fortitude.delete(0, tk.END); entry_fortitude.insert(0, data.get("Fortitude", ""))
+        entry_toughness.delete(0, tk.END); entry_toughness.insert(0, data.get("Toughness", ""))
+        entry_will.delete(0, tk.END); entry_will.insert(0, data.get("Will", ""))
 
 def save_armor_preset():
     global presets
@@ -700,17 +734,34 @@ if __name__ == '__main__':
     tk.Label(root_editor_frame, text="PRE:").grid(row=1, column=6)
     entry_pre = tk.Entry(root_editor_frame, width=3)
     entry_pre.grid(row=1, column=7)
+
+    tk.Label(root_editor_frame, text="Dodge:").grid(row=2, column=0)
+    entry_dodge = tk.Entry(root_editor_frame, width=3)
+    entry_dodge.grid(row=2, column=1)
+    tk.Label(root_editor_frame, text="Parry:").grid(row=2, column=2)
+    entry_parry = tk.Entry(root_editor_frame, width=3)
+    entry_parry.grid(row=2, column=3)
+    tk.Label(root_editor_frame, text="Fortitude:").grid(row=2, column=4)
+    entry_fortitude = tk.Entry(root_editor_frame, width=3)
+    entry_fortitude.grid(row=2, column=5)
+    tk.Label(root_editor_frame, text="Toughness:").grid(row=2, column=6)
+    entry_toughness = tk.Entry(root_editor_frame, width=3)
+    entry_toughness.grid(row=2, column=7)
+    tk.Label(root_editor_frame, text="Will:").grid(row=3, column=0)
+    entry_will = tk.Entry(root_editor_frame, width=3)
+    entry_will.grid(row=3, column=1)
+
     btn_generate_root = tk.Button(root_editor_frame, text="Generate Root", command=generate_root)
-    btn_generate_root.grid(row=2, column=0, columnspan=4, pady=5)
+    btn_generate_root.grid(row=4, column=0, columnspan=4, pady=5)
     btn_update_root = tk.Button(root_editor_frame, text="Update Root Attributes", command=update_root)
-    btn_update_root.grid(row=2, column=4, columnspan=4, pady=5)
+    btn_update_root.grid(row=4, column=4, columnspan=4, pady=5)
     btn_clear_root = tk.Button(root_editor_frame, text="Clear Root", command=clear_root)
-    btn_clear_root.grid(row=3, column=0, columnspan=8, pady=5)
-    tk.Label(root_editor_frame, text="Save Preset:").grid(row=4, column=0, columnspan=2)
+    btn_clear_root.grid(row=5, column=0, columnspan=8, pady=5)
+    tk.Label(root_editor_frame, text="Save Preset:").grid(row=6, column=0, columnspan=2)
     btn_save_root = tk.Button(root_editor_frame, text="Save", command=save_root_preset)
-    btn_save_root.grid(row=4, column=2, columnspan=2)
+    btn_save_root.grid(row=6, column=2, columnspan=2)
     root_preset_menu = tk.OptionMenu(root_editor_frame, root_preset_var, "")
-    root_preset_menu.grid(row=4, column=4, columnspan=4)
+    root_preset_menu.grid(row=6, column=4, columnspan=4)
 
     # --- Armor Generation Controls Subframe ---
     armor_gen_frame = tk.LabelFrame(control_frame, text="Armor Generation Controls")
