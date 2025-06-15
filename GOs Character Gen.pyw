@@ -12,9 +12,13 @@ global_weapons = []     # List of weapon dictionaries.
 global_powers = []      # List of power dictionaries.
 characters = {}         # Saved characters
 groups = []             # Character groups
+keywords = {}           # Keyword -> description
 save_group_listbox = None
 filter_group_var = None
 filter_group_menu = None
+keywords_listbox = None
+keyword_desc_text = None
+tooltip_window = None
 
 # ==========================
 # Presets Data and File Path
@@ -24,6 +28,7 @@ presets_dir = os.path.join(os.path.expanduser("~"), "Documents", "GOsCharacterGe
 presets_file = os.path.join(presets_dir, "presets.json")
 os.makedirs(presets_dir, exist_ok=True)
 characters_file = os.path.join(presets_dir, "characters.json")
+keywords_file = os.path.join(presets_dir, "keywords.json")
 
 # ==========================
 # Data Definitions
@@ -400,6 +405,7 @@ def refresh_display():
     output_text = f"{root_line}\n{derived_line}\n{armor_section}\n{weapons_section}\n{powers_section}\n"
     output_box.delete("1.0", tk.END)
     output_box.insert(tk.END, output_text)
+    update_keyword_highlights()
 
 def generate_root():
     global global_root
@@ -560,6 +566,98 @@ def save_presets_to_file():
             json.dump(presets, f, indent=2)
     except Exception as e:
         print("Error saving presets:", e)
+
+# ==========================
+# Keyword Saving/Loading Functions
+# ==========================
+def load_keywords():
+    global keywords
+    if os.path.exists(keywords_file):
+        try:
+            with open(keywords_file, "r") as f:
+                keywords = json.load(f)
+        except Exception as e:
+            print("Error loading keywords:", e)
+            keywords = {}
+    else:
+        keywords = {}
+    update_keywords_listbox()
+    update_keyword_highlights()
+
+def save_keywords_to_file():
+    try:
+        with open(keywords_file, "w") as f:
+            json.dump(keywords, f, indent=2)
+    except Exception as e:
+        print("Error saving keywords:", e)
+
+def update_keywords_listbox():
+    global keywords_listbox
+    if keywords_listbox is not None:
+        keywords_listbox.delete(0, tk.END)
+        for k in sorted(keywords.keys()):
+            keywords_listbox.insert(tk.END, k)
+
+def add_keyword():
+    global keywords
+    name = simpledialog.askstring("Add Keyword", "Enter keyword:")
+    if not name:
+        return
+    desc = simpledialog.askstring("Add Keyword", "Enter description:")
+    if desc is None:
+        return
+    keywords[name] = desc
+    save_keywords_to_file()
+    update_keywords_listbox()
+    update_keyword_highlights()
+
+def on_keyword_select(event=None):
+    global keyword_desc_text
+    if keywords_listbox is None or keyword_desc_text is None:
+        return
+    if not keywords_listbox.curselection():
+        return
+    kw = keywords_listbox.get(keywords_listbox.curselection()[0])
+    keyword_desc_text.config(state=tk.NORMAL)
+    keyword_desc_text.delete("1.0", tk.END)
+    keyword_desc_text.insert(tk.END, keywords.get(kw, ""))
+    keyword_desc_text.config(state=tk.DISABLED)
+
+def show_tooltip(event, text):
+    global tooltip_window
+    if tooltip_window is not None:
+        tooltip_window.destroy()
+    x = event.x_root + 20
+    y = event.y_root + 10
+    tooltip_window = tw = tk.Toplevel(output_box)
+    tw.wm_overrideredirect(True)
+    tw.wm_geometry(f"+{x}+{y}")
+    label = tk.Label(tw, text=text, background="yellow", relief="solid", borderwidth=1, wraplength=200)
+    label.pack()
+
+def hide_tooltip(event=None):
+    global tooltip_window
+    if tooltip_window is not None:
+        tooltip_window.destroy()
+        tooltip_window = None
+
+def update_keyword_highlights():
+    for tag in output_box.tag_names():
+        if tag.startswith("kw_"):
+            output_box.tag_delete(tag)
+    for word, desc in keywords.items():
+        start = "1.0"
+        while True:
+            idx = output_box.search(word, start, tk.END)
+            if not idx:
+                break
+            end = f"{idx}+{len(word)}c"
+            tag = f"kw_{idx.replace('.', '_')}"
+            output_box.tag_add(tag, idx, end)
+            output_box.tag_config(tag, underline=True, foreground="blue")
+            output_box.tag_bind(tag, "<Enter>", lambda e, d=desc: show_tooltip(e, d))
+            output_box.tag_bind(tag, "<Leave>", hide_tooltip)
+            start = end
 
 # ==========================
 # Character Saving/Loading Functions
@@ -913,8 +1011,10 @@ if __name__ == '__main__':
 
     generator_tab = ttk.Frame(notebook)
     characters_tab = ttk.Frame(notebook)
+    keywords_tab = ttk.Frame(notebook)
     notebook.add(generator_tab, text="Generator")
     notebook.add(characters_tab, text="Characters")
+    notebook.add(keywords_tab, text="Keywords")
 
     root_preset_var = tk.StringVar(root)
     armor_preset_var = tk.StringVar(root)
@@ -1090,6 +1190,19 @@ if __name__ == '__main__':
     btn_delete_char = tk.Button(char_btn_frame, text="Delete Selected", command=delete_character)
     btn_delete_char.pack(side=tk.LEFT, padx=5)
 
+    # --- Keywords Tab ---
+    keywords_listbox = tk.Listbox(keywords_tab)
+    keywords_listbox.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=5, pady=5)
+    keywords_listbox.bind("<<ListboxSelect>>", on_keyword_select)
+
+    keyword_desc_text = tk.Text(keywords_tab, height=5, wrap=tk.WORD, state=tk.DISABLED)
+    keyword_desc_text.pack(fill=tk.BOTH, expand=True, padx=5, pady=5)
+
+    kw_btn_frame = tk.Frame(keywords_tab)
+    kw_btn_frame.pack(pady=5)
+    btn_add_keyword = tk.Button(kw_btn_frame, text="Add Keyword", command=add_keyword)
+    btn_add_keyword.pack(side=tk.LEFT, padx=5)
+
     # Context menu for character list
     char_menu = tk.Menu(characters_tab, tearoff=0)
     char_menu.add_command(label="Edit", command=edit_character)
@@ -1107,5 +1220,6 @@ if __name__ == '__main__':
 
     load_presets()
     load_characters()
+    load_keywords()
     update_all_preset_menus()
     root.mainloop()
