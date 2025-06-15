@@ -29,118 +29,71 @@ presets_file = os.path.join(presets_dir, "presets.json")
 os.makedirs(presets_dir, exist_ok=True)
 characters_file = os.path.join(presets_dir, "characters.json")
 keywords_file = os.path.join(presets_dir, "keywords.json")
+armor_file = os.path.join(presets_dir, "armor.json")
+weapon_file = os.path.join(presets_dir, "weapons.json")
 
 # ==========================
 # Data Definitions
 # ==========================
-# Armor data: (Name, Bonus, [Tags])
-armors_data = [
-    ("Padded Armor", 1, ["Medieval", "Light"]),
-    ("Leather Armor", 2, ["Medieval", "Light"]),
-    ("Studded Leather", 3, ["Medieval", "Light"]),
-    ("Brigandine", 4, ["Medieval", "Medium"]),
-    ("Chain Shirt", 4, ["Medieval", "Medium"]),
-    ("Chainmail", 6, ["Medieval", "Heavy"]),
-    ("Scale Mail", 7, ["Medieval", "Medium"]),
-    ("Lamellar Armor", 7, ["Medieval", "Medium"]),
-    ("Plate Mail", 8, ["Medieval", "Heavy"]),
-    ("Full Plate", 10, ["Medieval", "Heavy"]),
-    ("Ballistic Vest", 12, ["Modern", "Light"]),
-    ("Riot Armor", 14, ["Modern", "Medium"]),
-    ("SWAT Tactical Armor", 16, ["Modern", "Medium"]),
-    ("Military Body Armor", 18, ["Modern", "Heavy", "Ablative"]),
-    ("Bomb Disposal Suit", 20, ["Modern", "Heavy", "Sealed"]),
-    ("Canine Training Suit", 10, ["Modern", "Light"]),
-    ("Hazmat Suit", 8, ["Modern", "Sealed", "Light"]),
-    ("EOD Suit", 22, ["Modern", "Heavy", "Sealed", "Ablative"]),
-    ("Powered Exosuit", 24, ["Postmodern", "Power", "Medium"]),
-    ("Tactical Nanite Vest", 25, ["Postmodern", "Medium", "Nanite", "Ablative"]),
-    ("Adaptive Nanite Armor", 28, ["Postmodern", "Nanite", "Sealed", "Ablative", "Medium"]),
-    ("Energy Shielded Armor", 26, ["Postmodern", "Power", "Sealed", "Light"]),
-    ("Mech-Infantry Suit", 30, ["Postmodern", "Power", "Heavy", "Sealed", "Ablative"]),
-    ("Synthetic Bio-Armor", 28, ["Postmodern", "Nanite", "Medium", "Sealed"]),
-    ("Void Suit", 26, ["Postmodern", "Sealed", "Medium"]),
-    ("Aegis-Class Titan Armor", 30, ["Postmodern", "Power", "Heavy", "Sealed", "Ablative"]),
-    ("Phase-Shifting Armor", 27, ["Postmodern", "Medium", "Power"]),
-    ("Dystopian Riot Gear", 22, ["Postmodern", "Medium", "Modern"])
-]
 
-# Weapons data: (Name, Base Damage, Tags, Associated Stat)
-weapons_data = [
-    ("Club", 2, "Medieval, Melee", "STR"),
-    ("Dagger", 3, "Medieval, Melee, Thrown, Finesse, Stealth", "DEX"),
-    ("Shortsword", 5, "Medieval, Melee, Finesse, Riposte", "DEX"),
-    ("Longsword", 7, "Medieval, Melee", "STR"),
-    ("Rapier", 4, "Medieval, Melee, Finesse, Improved Crit(2), Riposte, Stealth", "DEX"),
-    ("Mace", 6, "Medieval, Melee, Crushing(2)", "STR"),
-    ("Warhammer", 8, "Medieval, Melee, Crushing(4), Heavy", "STR"),
-    ("Battle Axe", 7, "Medieval, Melee, Cleaving, Heavy", "STR"),
-    ("Greatsword", 10, "Medieval, Melee, 2-Hand, Cleaving, Heavy, Improved Crit(1)", "STR"),
-    ("Spear", 4, "Medieval, Melee, Thrown, Reach(5)", "STR"),
-    ("Halberd", 9, "Medieval, Melee, 2-Hand, Reach(10), Cleaving", "STR"),
-    ("Pike", 8, "Medieval, Melee, 2-Hand, Reach(15)", "STR"),
-    ("Scimitar", 6, "Medieval, Melee, Finesse, Riposte", "DEX"),
-    ("Falchion", 7, "Medieval, Melee, Cleaving", "STR"),
-    ("Throwing Axe", 3, "Medieval, Thrown, Finesse", "DEX"),
-    ("Hand Axe", 4, "Medieval, Thrown, Finesse", "DEX"),
-    ("Short Bow", 4, "Medieval, Ranged, 2-Hand, Ammunition", "DEX"),
-    ("Long Bow", 7, "Medieval, Ranged, 2-Hand, Ammunition", "DEX"),
-    ("Crossbow", 8, "Medieval, Ranged, 2-Hand, Ammunition, Reload", "DEX"),
-    ("Hand Crossbow", 4, "Medieval, Ranged, Ammunition, Reload, Stealth", "DEX"),
-    ("Sling", 2, "Medieval, Ranged, Ammunition, Thrown", "DEX"),
-    ("Javelin", 3, "Medieval, Thrown", "STR"),
-    ("Lance", 9, "Medieval, Melee, 2-Hand, Reach(10), Heavy", "STR"),
-    ("Bardiche", 9, "Medieval, Melee, 2-Hand, Cleaving, Heavy", "STR"),
-    ("Glaive", 8, "Medieval, Melee, 2-Hand, Reach(10), Cleaving", "STR"),
-    ("Quarterstaff", 2, "Medieval, Melee, Defensive", "STR"),
-    ("Morning Star", 7, "Medieval, Melee, Brutal, Crushing(3)", "STR"),
-    ("Flail", 6, "Medieval, Melee, Unwieldy, Crushing(2)", "STR"),
-    ("War Scythe", 8, "Medieval, Melee, 2-Hand, Cleaving, Unwieldy", "STR"),
-    ("Net", 1, "Medieval, Ranged, Thrown, Entangling", "DEX"),
-    ("Bolas", 2, "Medieval, Thrown, Entangling", "DEX"),
-    ("Hooked Mace", 5, "Medieval, Melee, Hooking, Crushing(2)", "STR"),
-    ("Dirk", 3, "Medieval, Melee, Finesse, Stealth", "DEX"),
-    ("Estoc", 6, "Medieval, Melee, Piercing(2), Finesse", "DEX"),
-    ("Sickle", 4, "Medieval, Melee, Finesse", "DEX"),
-    ("Maul", 12, "Medieval, Melee, 2-Hand, Crushing(6), Heavy", "STR"),
-    ("Giant's Club", 15, "Medieval, Melee, 2-Hand, Crushing(8), Heavy, Unwieldy", "STR"),
-    ("Spiked Gauntlet", 4, "Medieval, Melee, Finesse, Piercing(1)", "DEX"),
-    ("Repeating Crossbow", 9, "Medieval, Ranged, 2-Hand, Ammunition, Reload", "DEX"),
-    ("Heavy Lance", 11, "Medieval, Melee, 2-Hand, Reach(15), Heavy", "STR"),
-    ("Spiked Club", 5, "Medieval, Melee, Crushing(3), Piercing(1)", "STR"),
-    ("Executioner's Axe", 16, "Medieval, Melee, 2-Hand, Cleaving, Heavy, Brutal", "STR"),
-    ("Colossal Warhammer", 18, "Medieval, Melee, 2-Hand, Crushing(8), Heavy, Brutal", "STR"),
-    ("Great Cleaver", 17, "Medieval, Melee, 2-Hand, Cleaving, Brutal", "STR"),
-    ("Pistol", 6, "Modern, Ranged, Ammunition, Reload", "DEX"),
-    ("Revolver", 7, "Modern, Ranged, Ammunition, Reload", "DEX"),
-    ("Shotgun", 9, "Modern, Ranged, Ammunition, Reload, Heavy", "DEX"),
-    ("Assault Rifle", 8, "Modern, Ranged, Ammunition, Reload, Multiattack(3)", "DEX"),
-    ("Sniper Rifle", 12, "Modern, Ranged, Ammunition, Reload, Piercing(3), Heavy", "DEX"),
-    ("Submachine Gun", 7, "Modern, Ranged, Ammunition, Reload, Multiattack(4)", "DEX"),
-    ("Machine Gun", 10, "Modern, Ranged, Ammunition, Reload, Heavy, Multiattack(5)", "DEX"),
-    ("Grenade Launcher", 11, "Modern, Ranged, Ammunition, Thrown, Reload, Heavy", "DEX"),
-    ("Flamethrower", 10, "Modern, Ranged, Ammunition, Reload, Heavy", "DEX"),
-    ("Rocket Launcher", 15, "Modern, Ranged, Ammunition, Reload, Heavy", "STR"),
-    ("Taser", 2, "Modern, Ranged", "DEX"),
-    ("Bayonet", 4, "Modern, Melee, Finesse, Piercing(1)", "DEX"),
-    ("Combat Knife", 5, "Modern, Melee, Finesse, Stealth, Thrown", "DEX"),
-    ("Plasma Rifle", 10, "Postmodern, Ranged, Ammunition, Reload, Heavy", "DEX"),
-    ("Laser Pistol", 7, "Postmodern, Ranged, Ammunition, Reload, Stealth", "DEX"),
-    ("Gauss Rifle", 12, "Postmodern, Ranged, Ammunition, Reload, Piercing(4)", "DEX"),
-    ("Energy Sword", 9, "Postmodern, Melee, Finesse, Riposte", "DEX"),
-    ("Particle Cannon", 15, "Postmodern, Ranged, Ammunition, Reload, Heavy, Brutal", "STR"),
-    ("Railgun", 14, "Postmodern, Ranged, Ammunition, Reload, Piercing(4), Heavy", "STR"),
-    ("Nano Blade", 8, "Postmodern, Melee, Finesse, Stealth", "DEX"),
-    ("Photon Blaster", 9, "Postmodern, Ranged, Ammunition, Reload", "DEX"),
-    ("Ionizer", 7, "Postmodern, Ranged, Ammunition, Reload", "DEX"),
-    ("Gravity Hammer", 16, "Postmodern, Melee, 2-Hand, Crushing(8), Heavy, Brutal", "STR"),
-    ("Sonic Disruptor", 10, "Postmodern, Ranged, Ammunition, Reload", "DEX"),
-    ("Neutrino Beam", 18, "Postmodern, Ranged, Ammunition, Reload, Heavy, Piercing(4)", "STR"),
-    ("Quantum Blade", 13, "Postmodern, Melee, Finesse, Cleaving, Stealth", "DEX"),
-    ("Plasma Grenade", 11, "Postmodern, Thrown, Ranged, Ammunition", "DEX"),
-    ("EMP Rifle", 8, "Postmodern, Ranged, Ammunition, Reload, Piercing(1)", "DEX"),
-    ("Laser Cannon", 17, "Postmodern, Ranged, Ammunition, Reload, Heavy, Piercing(3)", "STR")
-]
+# These JSON files contain lists of armors and weapons.  If they do not exist in
+# the user's install directory they will be created from the bundled defaults.
+default_armor_path = os.path.join(os.path.dirname(__file__), "default_armors.json")
+default_weapon_path = os.path.join(os.path.dirname(__file__), "default_weapons.json")
+
+armors_data = []
+weapons_data = []
+
+def load_armor_data():
+    global armors_data
+    if os.path.exists(armor_file):
+        try:
+            with open(armor_file, "r") as f:
+                armors_data = json.load(f)
+        except Exception as e:
+            print("Error loading armor file:", e)
+            armors_data = json.load(open(default_armor_path))
+    else:
+        armors_data = json.load(open(default_armor_path))
+        try:
+            with open(armor_file, "w") as f:
+                json.dump(armors_data, f, indent=2)
+        except Exception as e:
+            print("Error saving armor file:", e)
+
+def load_weapon_data():
+    global weapons_data
+    if os.path.exists(weapon_file):
+        try:
+            with open(weapon_file, "r") as f:
+                weapons_data = json.load(f)
+        except Exception as e:
+            print("Error loading weapon file:", e)
+            weapons_data = json.load(open(default_weapon_path))
+    else:
+        weapons_data = json.load(open(default_weapon_path))
+        try:
+            with open(weapon_file, "w") as f:
+                json.dump(weapons_data, f, indent=2)
+        except Exception as e:
+            print("Error saving weapon file:", e)
+
+def detect_list_keywords():
+    """Add any tags found in armor or weapon lists to the keywords dict."""
+    found = set()
+    for a in armors_data:
+        if len(a) > 2:
+            found.update(a[2])
+    for w in weapons_data:
+        if len(w) > 2 and w[2]:
+            found.update(t.strip() for t in w[2].split(',') if t.strip())
+    added = False
+    for kw in found:
+        if kw not in keywords:
+            keywords[kw] = "Description TBD"
+            added = True
+    if added:
+        save_keywords_to_file()
 
 # Power list: index 0 corresponds to Frequency #1, etc.
 power_list = [
@@ -581,6 +534,7 @@ def load_keywords():
             keywords = {}
     else:
         keywords = {}
+    detect_list_keywords()
     update_keywords_listbox()
     update_keyword_highlights()
 
@@ -599,13 +553,20 @@ def update_keywords_listbox():
             keywords_listbox.insert(tk.END, k)
 
 class KeywordDialog(simpledialog.Dialog):
+    def __init__(self, master, title=None, name="", desc=""):
+        self.initial_name = name
+        self.initial_desc = desc
+        super().__init__(master, title=title)
+
     def body(self, master):
         tk.Label(master, text="Keyword:").grid(row=0, column=0, sticky="w")
         self.entry_name = tk.Entry(master)
         self.entry_name.grid(row=0, column=1, sticky="ew")
+        self.entry_name.insert(0, self.initial_name)
         tk.Label(master, text="Description:").grid(row=1, column=0, sticky="nw")
         self.entry_desc = tk.Text(master, width=30, height=4)
         self.entry_desc.grid(row=1, column=1, sticky="ew")
+        self.entry_desc.insert("1.0", self.initial_desc)
         return self.entry_name
 
     def apply(self):
@@ -626,6 +587,33 @@ def add_keyword():
     save_keywords_to_file()
     update_keywords_listbox()
     update_keyword_highlights()
+
+def edit_keyword():
+    if keywords_listbox is None or not keywords_listbox.curselection():
+        return
+    old = keywords_listbox.get(keywords_listbox.curselection()[0])
+    dialog = KeywordDialog(root, title="Edit Keyword", name=old, desc=keywords.get(old, ""))
+    if dialog.result is None:
+        return
+    name, desc = dialog.result
+    if not name:
+        return
+    if name != old:
+        keywords.pop(old, None)
+    keywords[name] = desc
+    save_keywords_to_file()
+    update_keywords_listbox()
+    update_keyword_highlights()
+
+def remove_keyword():
+    if keywords_listbox is None or not keywords_listbox.curselection():
+        return
+    kw = keywords_listbox.get(keywords_listbox.curselection()[0])
+    if kw in keywords:
+        del keywords[kw]
+        save_keywords_to_file()
+        update_keywords_listbox()
+        update_keyword_highlights()
 
 def on_keyword_select(event=None):
     global keyword_desc_text
@@ -994,6 +982,38 @@ def add_group():
         save_characters_to_file()
         update_group_menus()
 
+def edit_group():
+    if not groups:
+        return
+    name = simpledialog.askstring("Edit Group", "Group to edit:")
+    if not name or name not in groups:
+        return
+    new_name = simpledialog.askstring("Edit Group", "New name:", initialvalue=name)
+    if not new_name or new_name == name:
+        return
+    if new_name in groups:
+        return
+    idx = groups.index(name)
+    groups[idx] = new_name
+    for c in characters.values():
+        if name in c.get("groups", []):
+            c["groups"] = [new_name if g == name else g for g in c["groups"]]
+    save_characters_to_file()
+    update_group_menus()
+
+def remove_group():
+    if not groups:
+        return
+    name = simpledialog.askstring("Remove Group", "Group to remove:")
+    if not name or name not in groups:
+        return
+    groups.remove(name)
+    for c in characters.values():
+        if name in c.get("groups", []):
+            c["groups"] = [g for g in c["groups"] if g != name]
+    save_characters_to_file()
+    update_group_menus()
+
 # Load presets from file.
 def load_presets():
     global presets
@@ -1055,6 +1075,10 @@ if __name__ == '__main__':
     save_group_listbox.pack(side=tk.LEFT, padx=5)
     btn_add_group_gen = tk.Button(save_frame, text="Add Group", command=add_group)
     btn_add_group_gen.pack(side=tk.LEFT, padx=5)
+    btn_edit_group_gen = tk.Button(save_frame, text="Edit Group", command=edit_group)
+    btn_edit_group_gen.pack(side=tk.LEFT, padx=5)
+    btn_remove_group_gen = tk.Button(save_frame, text="Remove Group", command=remove_group)
+    btn_remove_group_gen.pack(side=tk.LEFT, padx=5)
     btn_save_char_gen = tk.Button(save_frame, text="Save Character", command=save_character)
     btn_save_char_gen.pack(side=tk.LEFT, padx=5)
 
@@ -1200,6 +1224,10 @@ if __name__ == '__main__':
     filter_group_var.trace_add("write", lambda *args: update_character_list(search_var.get()))
     btn_add_group_char = tk.Button(group_frame, text="Add Group", command=add_group)
     btn_add_group_char.pack(side=tk.LEFT, padx=5)
+    btn_edit_group_char = tk.Button(group_frame, text="Edit Group", command=edit_group)
+    btn_edit_group_char.pack(side=tk.LEFT, padx=5)
+    btn_remove_group_char = tk.Button(group_frame, text="Remove Group", command=remove_group)
+    btn_remove_group_char.pack(side=tk.LEFT, padx=5)
 
     char_btn_frame = tk.Frame(characters_tab)
     char_btn_frame.pack(pady=5)
@@ -1218,6 +1246,10 @@ if __name__ == '__main__':
     kw_btn_frame.pack(pady=5)
     btn_add_keyword = tk.Button(kw_btn_frame, text="Add Keyword", command=add_keyword)
     btn_add_keyword.pack(side=tk.LEFT, padx=5)
+    btn_edit_keyword = tk.Button(kw_btn_frame, text="Edit Keyword", command=edit_keyword)
+    btn_edit_keyword.pack(side=tk.LEFT, padx=5)
+    btn_remove_keyword = tk.Button(kw_btn_frame, text="Remove Keyword", command=remove_keyword)
+    btn_remove_keyword.pack(side=tk.LEFT, padx=5)
 
     # Context menu for character list
     char_menu = tk.Menu(characters_tab, tearoff=0)
@@ -1235,6 +1267,8 @@ if __name__ == '__main__':
     characters_listbox.bind("<Button-3>", show_char_menu)
 
     load_presets()
+    load_armor_data()
+    load_weapon_data()
     load_characters()
     load_keywords()
     update_all_preset_menus()

@@ -1,0 +1,440 @@
+[
+  [
+    "Club",
+    2,
+    "Medieval, Melee",
+    "STR"
+  ],
+  [
+    "Dagger",
+    3,
+    "Medieval, Melee, Thrown, Finesse, Stealth",
+    "DEX"
+  ],
+  [
+    "Shortsword",
+    5,
+    "Medieval, Melee, Finesse, Riposte",
+    "DEX"
+  ],
+  [
+    "Longsword",
+    7,
+    "Medieval, Melee",
+    "STR"
+  ],
+  [
+    "Rapier",
+    4,
+    "Medieval, Melee, Finesse, Improved Crit(2), Riposte, Stealth",
+    "DEX"
+  ],
+  [
+    "Mace",
+    6,
+    "Medieval, Melee, Crushing(2)",
+    "STR"
+  ],
+  [
+    "Warhammer",
+    8,
+    "Medieval, Melee, Crushing(4), Heavy",
+    "STR"
+  ],
+  [
+    "Battle Axe",
+    7,
+    "Medieval, Melee, Cleaving, Heavy",
+    "STR"
+  ],
+  [
+    "Greatsword",
+    10,
+    "Medieval, Melee, 2-Hand, Cleaving, Heavy, Improved Crit(1)",
+    "STR"
+  ],
+  [
+    "Spear",
+    4,
+    "Medieval, Melee, Thrown, Reach(5)",
+    "STR"
+  ],
+  [
+    "Halberd",
+    9,
+    "Medieval, Melee, 2-Hand, Reach(10), Cleaving",
+    "STR"
+  ],
+  [
+    "Pike",
+    8,
+    "Medieval, Melee, 2-Hand, Reach(15)",
+    "STR"
+  ],
+  [
+    "Scimitar",
+    6,
+    "Medieval, Melee, Finesse, Riposte",
+    "DEX"
+  ],
+  [
+    "Falchion",
+    7,
+    "Medieval, Melee, Cleaving",
+    "STR"
+  ],
+  [
+    "Throwing Axe",
+    3,
+    "Medieval, Thrown, Finesse",
+    "DEX"
+  ],
+  [
+    "Hand Axe",
+    4,
+    "Medieval, Thrown, Finesse",
+    "DEX"
+  ],
+  [
+    "Short Bow",
+    4,
+    "Medieval, Ranged, 2-Hand, Ammunition",
+    "DEX"
+  ],
+  [
+    "Long Bow",
+    7,
+    "Medieval, Ranged, 2-Hand, Ammunition",
+    "DEX"
+  ],
+  [
+    "Crossbow",
+    8,
+    "Medieval, Ranged, 2-Hand, Ammunition, Reload",
+    "DEX"
+  ],
+  [
+    "Hand Crossbow",
+    4,
+    "Medieval, Ranged, Ammunition, Reload, Stealth",
+    "DEX"
+  ],
+  [
+    "Sling",
+    2,
+    "Medieval, Ranged, Ammunition, Thrown",
+    "DEX"
+  ],
+  [
+    "Javelin",
+    3,
+    "Medieval, Thrown",
+    "STR"
+  ],
+  [
+    "Lance",
+    9,
+    "Medieval, Melee, 2-Hand, Reach(10), Heavy",
+    "STR"
+  ],
+  [
+    "Bardiche",
+    9,
+    "Medieval, Melee, 2-Hand, Cleaving, Heavy",
+    "STR"
+  ],
+  [
+    "Glaive",
+    8,
+    "Medieval, Melee, 2-Hand, Reach(10), Cleaving",
+    "STR"
+  ],
+  [
+    "Quarterstaff",
+    2,
+    "Medieval, Melee, Defensive",
+    "STR"
+  ],
+  [
+    "Morning Star",
+    7,
+    "Medieval, Melee, Brutal, Crushing(3)",
+    "STR"
+  ],
+  [
+    "Flail",
+    6,
+    "Medieval, Melee, Unwieldy, Crushing(2)",
+    "STR"
+  ],
+  [
+    "War Scythe",
+    8,
+    "Medieval, Melee, 2-Hand, Cleaving, Unwieldy",
+    "STR"
+  ],
+  [
+    "Net",
+    1,
+    "Medieval, Ranged, Thrown, Entangling",
+    "DEX"
+  ],
+  [
+    "Bolas",
+    2,
+    "Medieval, Thrown, Entangling",
+    "DEX"
+  ],
+  [
+    "Hooked Mace",
+    5,
+    "Medieval, Melee, Hooking, Crushing(2)",
+    "STR"
+  ],
+  [
+    "Dirk",
+    3,
+    "Medieval, Melee, Finesse, Stealth",
+    "DEX"
+  ],
+  [
+    "Estoc",
+    6,
+    "Medieval, Melee, Piercing(2), Finesse",
+    "DEX"
+  ],
+  [
+    "Sickle",
+    4,
+    "Medieval, Melee, Finesse",
+    "DEX"
+  ],
+  [
+    "Maul",
+    12,
+    "Medieval, Melee, 2-Hand, Crushing(6), Heavy",
+    "STR"
+  ],
+  [
+    "Giant's Club",
+    15,
+    "Medieval, Melee, 2-Hand, Crushing(8), Heavy, Unwieldy",
+    "STR"
+  ],
+  [
+    "Spiked Gauntlet",
+    4,
+    "Medieval, Melee, Finesse, Piercing(1)",
+    "DEX"
+  ],
+  [
+    "Repeating Crossbow",
+    9,
+    "Medieval, Ranged, 2-Hand, Ammunition, Reload",
+    "DEX"
+  ],
+  [
+    "Heavy Lance",
+    11,
+    "Medieval, Melee, 2-Hand, Reach(15), Heavy",
+    "STR"
+  ],
+  [
+    "Spiked Club",
+    5,
+    "Medieval, Melee, Crushing(3), Piercing(1)",
+    "STR"
+  ],
+  [
+    "Executioner's Axe",
+    16,
+    "Medieval, Melee, 2-Hand, Cleaving, Heavy, Brutal",
+    "STR"
+  ],
+  [
+    "Colossal Warhammer",
+    18,
+    "Medieval, Melee, 2-Hand, Crushing(8), Heavy, Brutal",
+    "STR"
+  ],
+  [
+    "Great Cleaver",
+    17,
+    "Medieval, Melee, 2-Hand, Cleaving, Brutal",
+    "STR"
+  ],
+  [
+    "Pistol",
+    6,
+    "Modern, Ranged, Ammunition, Reload",
+    "DEX"
+  ],
+  [
+    "Revolver",
+    7,
+    "Modern, Ranged, Ammunition, Reload",
+    "DEX"
+  ],
+  [
+    "Shotgun",
+    9,
+    "Modern, Ranged, Ammunition, Reload, Heavy",
+    "DEX"
+  ],
+  [
+    "Assault Rifle",
+    8,
+    "Modern, Ranged, Ammunition, Reload, Multiattack(3)",
+    "DEX"
+  ],
+  [
+    "Sniper Rifle",
+    12,
+    "Modern, Ranged, Ammunition, Reload, Piercing(3), Heavy",
+    "DEX"
+  ],
+  [
+    "Submachine Gun",
+    7,
+    "Modern, Ranged, Ammunition, Reload, Multiattack(4)",
+    "DEX"
+  ],
+  [
+    "Machine Gun",
+    10,
+    "Modern, Ranged, Ammunition, Reload, Heavy, Multiattack(5)",
+    "DEX"
+  ],
+  [
+    "Grenade Launcher",
+    11,
+    "Modern, Ranged, Ammunition, Thrown, Reload, Heavy",
+    "DEX"
+  ],
+  [
+    "Flamethrower",
+    10,
+    "Modern, Ranged, Ammunition, Reload, Heavy",
+    "DEX"
+  ],
+  [
+    "Rocket Launcher",
+    15,
+    "Modern, Ranged, Ammunition, Reload, Heavy",
+    "STR"
+  ],
+  [
+    "Taser",
+    2,
+    "Modern, Ranged",
+    "DEX"
+  ],
+  [
+    "Bayonet",
+    4,
+    "Modern, Melee, Finesse, Piercing(1)",
+    "DEX"
+  ],
+  [
+    "Combat Knife",
+    5,
+    "Modern, Melee, Finesse, Stealth, Thrown",
+    "DEX"
+  ],
+  [
+    "Plasma Rifle",
+    10,
+    "Postmodern, Ranged, Ammunition, Reload, Heavy",
+    "DEX"
+  ],
+  [
+    "Laser Pistol",
+    7,
+    "Postmodern, Ranged, Ammunition, Reload, Stealth",
+    "DEX"
+  ],
+  [
+    "Gauss Rifle",
+    12,
+    "Postmodern, Ranged, Ammunition, Reload, Piercing(4)",
+    "DEX"
+  ],
+  [
+    "Energy Sword",
+    9,
+    "Postmodern, Melee, Finesse, Riposte",
+    "DEX"
+  ],
+  [
+    "Particle Cannon",
+    15,
+    "Postmodern, Ranged, Ammunition, Reload, Heavy, Brutal",
+    "STR"
+  ],
+  [
+    "Railgun",
+    14,
+    "Postmodern, Ranged, Ammunition, Reload, Piercing(4), Heavy",
+    "STR"
+  ],
+  [
+    "Nano Blade",
+    8,
+    "Postmodern, Melee, Finesse, Stealth",
+    "DEX"
+  ],
+  [
+    "Photon Blaster",
+    9,
+    "Postmodern, Ranged, Ammunition, Reload",
+    "DEX"
+  ],
+  [
+    "Ionizer",
+    7,
+    "Postmodern, Ranged, Ammunition, Reload",
+    "DEX"
+  ],
+  [
+    "Gravity Hammer",
+    16,
+    "Postmodern, Melee, 2-Hand, Crushing(8), Heavy, Brutal",
+    "STR"
+  ],
+  [
+    "Sonic Disruptor",
+    10,
+    "Postmodern, Ranged, Ammunition, Reload",
+    "DEX"
+  ],
+  [
+    "Neutrino Beam",
+    18,
+    "Postmodern, Ranged, Ammunition, Reload, Heavy, Piercing(4)",
+    "STR"
+  ],
+  [
+    "Quantum Blade",
+    13,
+    "Postmodern, Melee, Finesse, Cleaving, Stealth",
+    "DEX"
+  ],
+  [
+    "Plasma Grenade",
+    11,
+    "Postmodern, Thrown, Ranged, Ammunition",
+    "DEX"
+  ],
+  [
+    "EMP Rifle",
+    8,
+    "Postmodern, Ranged, Ammunition, Reload, Piercing(1)",
+    "DEX"
+  ],
+  [
+    "Laser Cannon",
+    17,
+    "Postmodern, Ranged, Ammunition, Reload, Heavy, Piercing(3)",
+    "STR"
+  ]
+]
