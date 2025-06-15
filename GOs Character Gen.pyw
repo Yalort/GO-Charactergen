@@ -782,12 +782,47 @@ def add_encounter_character():
     if not encounter_listbox.curselection():
         return
     enc_name = encounter_listbox.get(encounter_listbox.curselection()[0])
-    char_name = simpledialog.askstring("Add Character", "Character name:")
-    if not char_name or char_name not in characters:
-        return
-    encounters[enc_name].append(char_name)
-    save_encounters_to_file()
-    update_encounter_char_list(enc_name)
+    open_encounter_char_dialog(enc_name)
+
+
+def open_encounter_char_dialog(enc_name):
+    dialog = tk.Toplevel()
+    dialog.title(f"Add Characters to {enc_name}")
+
+    search_var = tk.StringVar()
+    search_entry = tk.Entry(dialog, textvariable=search_var)
+    search_entry.pack(fill=tk.X, padx=5, pady=5)
+
+    listbox = tk.Listbox(dialog, selectmode=tk.MULTIPLE)
+    listbox.pack(fill=tk.BOTH, expand=True, padx=5, pady=5)
+
+    def update_list(*args):
+        listbox.delete(0, tk.END)
+        ft = search_var.get().lower()
+        for name, data in characters.items():
+            tags = ' '.join(data.get('tags', []))
+            if ft in name.lower() or ft in tags.lower():
+                listbox.insert(tk.END, name)
+
+    search_var.trace_add("write", update_list)
+    update_list()
+
+    def add_selected():
+        sel = listbox.curselection()
+        if not sel:
+            return
+        for i in sel:
+            char_name = listbox.get(i)
+            if char_name in characters:
+                encounters[enc_name].append(char_name)
+        save_encounters_to_file()
+        update_encounter_char_list(enc_name)
+        dialog.destroy()
+
+    btn_frame = tk.Frame(dialog)
+    btn_frame.pack(pady=5)
+    tk.Button(btn_frame, text="Add Selected", command=add_selected).pack(side=tk.LEFT, padx=5)
+    tk.Button(btn_frame, text="Cancel", command=dialog.destroy).pack(side=tk.LEFT, padx=5)
 
 def remove_encounter_character():
     if not encounter_listbox.curselection() or not encounter_char_listbox.curselection():
