@@ -19,6 +19,12 @@ filter_group_menu = None
 keywords_listbox = None
 keyword_desc_text = None
 tooltip_window = None
+encounters = {}
+tracker_entities = []
+encounter_listbox = None
+encounter_char_listbox = None
+tracker_listbox = None
+tracker_display = None
 
 # ==========================
 # Presets Data and File Path
@@ -31,6 +37,7 @@ characters_file = os.path.join(presets_dir, "characters.json")
 keywords_file = os.path.join(presets_dir, "keywords.json")
 armor_file = os.path.join(presets_dir, "armor.json")
 weapon_file = os.path.join(presets_dir, "weapons.json")
+encounters_file = os.path.join(presets_dir, "encounters.json")
 
 # ==========================
 # Data Definitions
@@ -545,6 +552,216 @@ def save_keywords_to_file():
     except Exception as e:
         print("Error saving keywords:", e)
 
+# ==========================
+# Encounter Saving/Loading Functions
+# ==========================
+def load_encounters():
+    global encounters
+    if os.path.exists(encounters_file):
+        try:
+            with open(encounters_file, "r") as f:
+                encounters = json.load(f)
+        except Exception as e:
+            print("Error loading encounters:", e)
+            encounters = {}
+    else:
+        encounters = {}
+    update_encounter_list()
+
+def save_encounters_to_file():
+    try:
+        with open(encounters_file, "w") as f:
+            json.dump(encounters, f, indent=2)
+    except Exception as e:
+        print("Error saving encounters:", e)
+
+def update_encounter_list():
+    if encounter_listbox is not None:
+        encounter_listbox.delete(0, tk.END)
+        for name in encounters.keys():
+            encounter_listbox.insert(tk.END, name)
+    update_encounter_char_list()
+
+def update_encounter_char_list(enc_name=None):
+    if encounter_char_listbox is None:
+        return
+    encounter_char_listbox.delete(0, tk.END)
+    if enc_name is None:
+        if encounter_listbox and encounter_listbox.curselection():
+            enc_name = encounter_listbox.get(encounter_listbox.curselection()[0])
+        else:
+            return
+    for c in encounters.get(enc_name, []):
+        encounter_char_listbox.insert(tk.END, c)
+
+def on_encounter_select(event=None):
+    update_encounter_char_list()
+
+def add_encounter():
+    name = simpledialog.askstring("Add Encounter", "Enter encounter name:")
+    if not name:
+        return
+    if name not in encounters:
+        encounters[name] = []
+        save_encounters_to_file()
+        update_encounter_list()
+
+def remove_encounter():
+    if not encounter_listbox.curselection():
+        return
+    name = encounter_listbox.get(encounter_listbox.curselection()[0])
+    if name in encounters:
+        del encounters[name]
+        save_encounters_to_file()
+        update_encounter_list()
+
+def add_encounter_character():
+    if not encounter_listbox.curselection():
+        return
+    enc_name = encounter_listbox.get(encounter_listbox.curselection()[0])
+    char_name = simpledialog.askstring("Add Character", "Character name:")
+    if not char_name or char_name not in characters:
+        return
+    encounters[enc_name].append(char_name)
+    save_encounters_to_file()
+    update_encounter_char_list(enc_name)
+
+def remove_encounter_character():
+    if not encounter_listbox.curselection() or not encounter_char_listbox.curselection():
+        return
+    enc_name = encounter_listbox.get(encounter_listbox.curselection()[0])
+    char_name = encounter_char_listbox.get(encounter_char_listbox.curselection()[0])
+    if char_name in encounters.get(enc_name, []):
+        encounters[enc_name].remove(char_name)
+        save_encounters_to_file()
+        update_encounter_char_list(enc_name)
+
+def generate_encounter_from_group():
+    if not encounter_listbox.curselection():
+        return
+    enc_name = encounter_listbox.get(encounter_listbox.curselection()[0])
+    group = simpledialog.askstring("Generate From Group", "Group name:")
+    if not group or group not in groups:
+        return
+    try:
+        num = int(simpledialog.askstring("Generate From Group", "Number of enemies:"))
+    except (TypeError, ValueError):
+        return
+    pool = [n for n,d in characters.items() if group in d.get('groups', [])]
+    if not pool:
+        return
+    for _ in range(num):
+        encounters[enc_name].append(random.choice(pool))
+    save_encounters_to_file()
+    update_encounter_char_list(enc_name)
+
+# ==========================
+# Tracker Functions
+# ==========================
+def update_tracker_list():
+    if tracker_listbox is not None:
+        tracker_listbox.delete(0, tk.END)
+        for ent in tracker_entities:
+            tracker_listbox.insert(tk.END, ent['name'])
+    update_tracker_display()
+
+def update_tracker_display():
+    if tracker_display is None:
+        return
+    tracker_display.delete('1.0', tk.END)
+    if not tracker_listbox or not tracker_listbox.curselection():
+        return
+    idx = tracker_listbox.curselection()[0]
+    ent = tracker_entities[idx]
+    tracker_display.insert(tk.END, character_to_text(ent))
+
+def on_tracker_select(event=None):
+    update_tracker_display()
+
+def add_selected_to_tracker():
+    if not characters_listbox.curselection():
+        return
+    name = get_selected_character_name()
+    data = characters.get(name)
+    if not data:
+        return
+    ent_data = create_entity_from_data(name, data)
+    tracker_entities.append(ent_data)
+    update_tracker_list()
+
+def remove_selected_entity():
+    if not tracker_listbox.curselection():
+        return
+    idx = tracker_listbox.curselection()[0]
+    del tracker_entities[idx]
+    update_tracker_list()
+
+def load_entity_to_generator():
+    if not tracker_listbox.curselection():
+        return
+    idx = tracker_listbox.curselection()[0]
+    ent = tracker_entities[idx]
+    global global_root, global_armor, global_weapons, global_powers
+    global_root = ent['root']
+    fill_root_entries(global_root)
+    global_armor = [a.copy() for a in ent.get('armor', [])]
+    global_weapons = [w.copy() for w in ent.get('weapons', [])]
+    global_powers = [p.copy() for p in ent.get('powers', [])]
+    refresh_display()
+
+def update_entity_from_generator():
+    if not tracker_listbox.curselection() or global_root is None:
+        return
+    idx = tracker_listbox.curselection()[0]
+    ent = tracker_entities[idx]
+    ent['root'] = global_root
+    ent['armor'] = list(global_armor)
+    ent['weapons'] = list(global_weapons)
+    ent['powers'] = list(global_powers)
+    update_tracker_display()
+
+def create_entity_from_data(name, data):
+    if data.get('template'):
+        old_root = global_root
+        old_armor = list(global_armor)
+        old_weapons = list(global_weapons)
+        old_powers = list(global_powers)
+        global_root = data['root']
+        fill_root_entries(global_root)
+        if data.get('armor_preset'):
+            armor_preset_var.set(data['armor_preset'])
+            load_armor_preset(data['armor_preset'])
+        generate_armors_advanced()
+        armor = [a.copy() for a in global_armor]
+        if data.get('weapon_preset'):
+            weapon_preset_var.set(data['weapon_preset'])
+            load_weapon_preset(data['weapon_preset'])
+        generate_weapons_advanced()
+        weapons = [w.copy() for w in global_weapons]
+        if data.get('power_preset'):
+            power_preset_var.set(data['power_preset'])
+            load_power_preset(data['power_preset'])
+        generate_powers_advanced()
+        powers = [p.copy() for p in global_powers]
+        global_root, global_armor, global_weapons, global_powers = (
+            old_root, old_armor, old_weapons, old_powers)
+        refresh_display()
+        return {
+            'name': name,
+            'root': data['root'],
+            'armor': armor,
+            'weapons': weapons,
+            'powers': powers
+        }
+    else:
+        return {
+            'name': name,
+            'root': data.get('root'),
+            'armor': data.get('armor', []),
+            'weapons': data.get('weapons', []),
+            'powers': data.get('powers', [])
+        }
+
 def update_keywords_listbox():
     global keywords_listbox
     if keywords_listbox is not None:
@@ -733,10 +950,41 @@ def save_character():
     save_characters_to_file()
     update_character_list()
 
+def save_template():
+    global save_group_listbox
+    if global_root is None:
+        return
+    entry = simpledialog.askstring(
+        "Save Template",
+        "Enter name and tags separated by ';' (e.g. Bob; hero, villain):",
+    )
+    if not entry:
+        return
+    if ';' in entry:
+        name_part, tag_part = entry.split(';', 1)
+    else:
+        name_part, tag_part = entry, ""
+    name = name_part.strip()
+    tag_str = tag_part.strip()
+    tags = [t.strip() for t in tag_str.split(',') if t.strip()]
+    selected_idx = save_group_listbox.curselection()
+    selected_groups = [save_group_listbox.get(i) for i in selected_idx]
+    characters[name] = {
+        "tags": tags,
+        "groups": selected_groups,
+        "root": global_root,
+        "template": True,
+        "armor_preset": armor_preset_var.get(),
+        "weapon_preset": weapon_preset_var.get(),
+        "power_preset": power_preset_var.get()
+    }
+    save_characters_to_file()
+    update_character_list()
+
 def delete_character():
     if not characters_listbox.curselection():
         return
-    name = characters_listbox.get(characters_listbox.curselection()[0])
+    name = get_selected_character_name()
     if name in characters:
         del characters[name]
         save_characters_to_file()
@@ -746,7 +994,7 @@ def delete_character():
 def edit_character():
     if not characters_listbox.curselection():
         return
-    name = characters_listbox.get(characters_listbox.curselection()[0])
+    name = get_selected_character_name()
     data = characters.get(name)
     if not data:
         return
@@ -756,9 +1004,17 @@ def edit_character():
         fill_root_entries(global_root)
     else:
         clear_root()
-    global_armor = data.get("armor", [])
-    global_weapons = data.get("weapons", [])
-    global_powers = data.get("powers", [])
+    if data.get("template"):
+        armor_preset_var.set(data.get("armor_preset", ""))
+        weapon_preset_var.set(data.get("weapon_preset", ""))
+        power_preset_var.set(data.get("power_preset", ""))
+        global_armor = []
+        global_weapons = []
+        global_powers = []
+    else:
+        global_armor = data.get("armor", [])
+        global_weapons = data.get("weapons", [])
+        global_powers = data.get("powers", [])
     if save_group_listbox is not None:
         save_group_listbox.selection_clear(0, tk.END)
         for i in range(save_group_listbox.size()):
@@ -809,12 +1065,16 @@ def character_to_text(data):
 def on_character_select(event=None):
     if not characters_listbox.curselection():
         return
-    name = characters_listbox.get(characters_listbox.curselection()[0])
+    name = get_selected_character_name()
     data = characters.get(name)
     if not data:
         return
     character_display.delete("1.0", tk.END)
-    character_display.insert(tk.END, character_to_text(data))
+    if data.get('template'):
+        generated = create_entity_from_data(name, data)
+        character_display.insert(tk.END, character_to_text(generated))
+    else:
+        character_display.insert(tk.END, character_to_text(data))
 
 def update_character_list(filter_text=""):
     global filter_group_var
@@ -828,9 +1088,19 @@ def update_character_list(filter_text=""):
             continue
         if ft:
             if ft in name.lower() or ft in tags.lower():
-                characters_listbox.insert(tk.END, name)
+                display = name + (" (G)" if data.get('template') else "")
+                characters_listbox.insert(tk.END, display)
         else:
-            characters_listbox.insert(tk.END, name)
+            display = name + (" (G)" if data.get('template') else "")
+            characters_listbox.insert(tk.END, display)
+
+def get_selected_character_name():
+    if not characters_listbox.curselection():
+        return None
+    disp = characters_listbox.get(characters_listbox.curselection()[0])
+    if disp.endswith(" (G)"):
+        return disp[:-4]
+    return disp
 
 def save_root_preset():
     global presets
@@ -1047,9 +1317,13 @@ if __name__ == '__main__':
 
     generator_tab = ttk.Frame(notebook)
     characters_tab = ttk.Frame(notebook)
+    encounters_tab = ttk.Frame(notebook)
+    tracker_tab = ttk.Frame(notebook)
     keywords_tab = ttk.Frame(notebook)
     notebook.add(generator_tab, text="Generator")
     notebook.add(characters_tab, text="Characters")
+    notebook.add(encounters_tab, text="Encounters")
+    notebook.add(tracker_tab, text="Tracker")
     notebook.add(keywords_tab, text="Keywords")
 
     root_preset_var = tk.StringVar(root)
@@ -1081,6 +1355,8 @@ if __name__ == '__main__':
     btn_remove_group_gen.pack(side=tk.LEFT, padx=5)
     btn_save_char_gen = tk.Button(save_frame, text="Save Character", command=save_character)
     btn_save_char_gen.pack(side=tk.LEFT, padx=5)
+    btn_save_template = tk.Button(save_frame, text="Save Template", command=save_template)
+    btn_save_template.pack(side=tk.LEFT, padx=5)
 
     # Left Frame: Controls (stacked vertically)
     control_frame = tk.Frame(main_frame)
@@ -1233,6 +1509,8 @@ if __name__ == '__main__':
     char_btn_frame.pack(pady=5)
     btn_delete_char = tk.Button(char_btn_frame, text="Delete Selected", command=delete_character)
     btn_delete_char.pack(side=tk.LEFT, padx=5)
+    btn_track_char = tk.Button(char_btn_frame, text="Add To Tracker", command=add_selected_to_tracker)
+    btn_track_char.pack(side=tk.LEFT, padx=5)
 
     # --- Keywords Tab ---
     keywords_listbox = tk.Listbox(keywords_tab)
@@ -1250,6 +1528,44 @@ if __name__ == '__main__':
     btn_edit_keyword.pack(side=tk.LEFT, padx=5)
     btn_remove_keyword = tk.Button(kw_btn_frame, text="Remove Keyword", command=remove_keyword)
     btn_remove_keyword.pack(side=tk.LEFT, padx=5)
+
+    # --- Encounters Tab ---
+    encounter_listbox = tk.Listbox(encounters_tab)
+    encounter_listbox.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=5, pady=5)
+    encounter_listbox.bind("<<ListboxSelect>>", on_encounter_select)
+
+    encounter_char_listbox = tk.Listbox(encounters_tab)
+    encounter_char_listbox.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=5, pady=5)
+
+    enc_btn_frame = tk.Frame(encounters_tab)
+    enc_btn_frame.pack(side=tk.RIGHT, fill=tk.Y)
+    btn_add_enc = tk.Button(enc_btn_frame, text="Add Encounter", command=add_encounter)
+    btn_add_enc.pack(fill=tk.X, padx=5, pady=2)
+    btn_remove_enc = tk.Button(enc_btn_frame, text="Remove Encounter", command=remove_encounter)
+    btn_remove_enc.pack(fill=tk.X, padx=5, pady=2)
+    btn_add_enc_char = tk.Button(enc_btn_frame, text="Add Char", command=add_encounter_character)
+    btn_add_enc_char.pack(fill=tk.X, padx=5, pady=2)
+    btn_remove_enc_char = tk.Button(enc_btn_frame, text="Remove Char", command=remove_encounter_character)
+    btn_remove_enc_char.pack(fill=tk.X, padx=5, pady=2)
+    btn_gen_enc = tk.Button(enc_btn_frame, text="Generate From Group", command=generate_encounter_from_group)
+    btn_gen_enc.pack(fill=tk.X, padx=5, pady=2)
+
+    # --- Tracker Tab ---
+    tracker_listbox = tk.Listbox(tracker_tab)
+    tracker_listbox.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=5, pady=5)
+    tracker_listbox.bind("<<ListboxSelect>>", on_tracker_select)
+
+    tracker_display = tk.Text(tracker_tab, height=15)
+    tracker_display.pack(side=tk.RIGHT, fill=tk.BOTH, expand=True, padx=5, pady=5)
+
+    tracker_btn_frame = tk.Frame(tracker_tab)
+    tracker_btn_frame.pack(side=tk.RIGHT, fill=tk.Y)
+    btn_remove_entity = tk.Button(tracker_btn_frame, text="Remove", command=remove_selected_entity)
+    btn_remove_entity.pack(fill=tk.X, padx=5, pady=2)
+    btn_load_entity = tk.Button(tracker_btn_frame, text="Load To Generator", command=load_entity_to_generator)
+    btn_load_entity.pack(fill=tk.X, padx=5, pady=2)
+    btn_update_entity = tk.Button(tracker_btn_frame, text="Update From Generator", command=update_entity_from_generator)
+    btn_update_entity.pack(fill=tk.X, padx=5, pady=2)
 
     # Context menu for character list
     char_menu = tk.Menu(characters_tab, tearoff=0)
@@ -1271,5 +1587,8 @@ if __name__ == '__main__':
     load_weapon_data()
     load_characters()
     load_keywords()
+    load_encounters()
+    update_encounter_list()
+    update_tracker_list()
     update_all_preset_menus()
     root.mainloop()
