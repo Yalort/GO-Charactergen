@@ -1,0 +1,122 @@
+{
+  "Medieval": {
+    "desc": "",
+    "variable": false
+  },
+  "Light": {
+    "desc": "",
+    "variable": false
+  },
+  "Medium": {
+    "desc": "",
+    "variable": false
+  },
+  "Heavy": {
+    "desc": "",
+    "variable": false
+  },
+  "Modern": {
+    "desc": "",
+    "variable": false
+  },
+  "Ablative": {
+    "desc": "",
+    "variable": false
+  },
+  "Sealed": {
+    "desc": "",
+    "variable": false
+  },
+  "Postmodern": {
+    "desc": "",
+    "variable": false
+  },
+  "Power": {
+    "desc": "",
+    "variable": false
+  },
+  "Nanite": {
+    "desc": "",
+    "variable": false
+  },
+  "Melee": {
+    "desc": "",
+    "variable": false
+  },
+  "Thrown": {
+    "desc": "",
+    "variable": false
+  },
+  "Finesse": {
+    "desc": "",
+    "variable": false
+  },
+  "Stealth": {
+    "desc": "",
+    "variable": false
+  },
+  "Riposte": {
+    "desc": "",
+    "variable": false
+  },
+  "Improved Crit": {
+    "desc": "",
+    "variable": true
+  },
+  "Crushing": {
+    "desc": "",
+    "variable": true
+  },
+  "Cleaving": {
+    "desc": "",
+    "variable": false
+  },
+  "2-Hand": {
+    "desc": "",
+    "variable": false
+  },
+  "Reach": {
+    "desc": "",
+    "variable": true
+  },
+  "Ranged": {
+    "desc": "",
+    "variable": false
+  },
+  "Ammunition": {
+    "desc": "",
+    "variable": false
+  },
+  "Reload": {
+    "desc": "",
+    "variable": false
+  },
+  "Defensive": {
+    "desc": "",
+    "variable": false
+  },
+  "Brutal": {
+    "desc": "",
+    "variable": false
+  },
+  "Unwieldy": {
+    "desc": "",
+    "variable": false
+  },
+  "Entangling": {
+    "desc": "",
+    "variable": false
+  },
+  "Hooking": {
+    "desc": "",
+    "variable": false
+  },
+  "Piercing": {
+    "desc": "",
+    "variable": true
+  },
+  "Multiattack": {
+    "desc": "",
+    "variable": true
+  }
+}
