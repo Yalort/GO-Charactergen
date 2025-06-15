@@ -47,6 +47,7 @@ encounters_file = os.path.join(presets_dir, "encounters.json")
 # the user's install directory they will be created from the bundled defaults.
 default_armor_path = os.path.join(os.path.dirname(__file__), "default_armors.json")
 default_weapon_path = os.path.join(os.path.dirname(__file__), "default_weapons.json")
+default_keywords_path = os.path.join(os.path.dirname(__file__), "default_keywords.json")
 
 armors_data = []
 weapons_data = []
@@ -549,24 +550,31 @@ def save_presets_to_file():
 # ==========================
 def load_keywords():
     global keywords
+    data = {}
     if os.path.exists(keywords_file):
         try:
             with open(keywords_file, "r") as f:
                 data = json.load(f)
-            keywords = {}
-            for k, v in data.items():
-                if isinstance(v, dict):
-                    keywords[k] = {
-                        "desc": v.get("desc", ""),
-                        "variable": bool(v.get("variable", False)),
-                    }
-                else:
-                    keywords[k] = {"desc": v, "variable": False}
         except Exception as e:
             print("Error loading keywords:", e)
-            keywords = {}
-    else:
-        keywords = {}
+    elif os.path.exists(default_keywords_path):
+        try:
+            with open(default_keywords_path, "r") as f:
+                data = json.load(f)
+            with open(keywords_file, "w") as out:
+                json.dump(data, out, indent=2)
+        except Exception as e:
+            print("Error loading default keywords:", e)
+            data = {}
+    keywords = {}
+    for k, v in data.items():
+        if isinstance(v, dict):
+            keywords[k] = {
+                "desc": v.get("desc", ""),
+                "variable": bool(v.get("variable", False)),
+            }
+        else:
+            keywords[k] = {"desc": v, "variable": False}
     detect_list_keywords()
     update_keywords_listbox()
     update_keyword_highlights()
