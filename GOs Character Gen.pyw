@@ -545,6 +545,135 @@ def save_presets_to_file():
     except Exception as e:
         print("Error saving presets:", e)
 
+def save_armors_data():
+    try:
+        with open(armor_file, "w") as f:
+            json.dump(armors_data, f, indent=2)
+    except Exception as e:
+        print("Error saving armor file:", e)
+
+def save_weapons_data():
+    try:
+        with open(weapon_file, "w") as f:
+            json.dump(weapons_data, f, indent=2)
+    except Exception as e:
+        print("Error saving weapon file:", e)
+
+def open_armor_editor():
+    editor = tk.Toplevel(root)
+    editor.title("Armor Editor")
+    lb = tk.Listbox(editor)
+    lb.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=5, pady=5)
+
+    btn_frame = tk.Frame(editor)
+    btn_frame.pack(side=tk.RIGHT, fill=tk.Y, padx=5, pady=5)
+
+    def refresh():
+        lb.delete(0, tk.END)
+        for a in armors_data:
+            tags = ', '.join(a[2]) if len(a) > 2 else ''
+            lb.insert(tk.END, f"{a[0]} ({a[1]}) [{tags}]")
+
+    def add_item():
+        dlg = ArmorDialog(editor, title="Add Armor")
+        if dlg.result:
+            armors_data.append([dlg.result[0], dlg.result[1], dlg.result[2]])
+            save_armors_data()
+            detect_list_keywords()
+            update_keywords_listbox()
+            update_keyword_highlights()
+            refresh()
+
+    def edit_item():
+        if not lb.curselection():
+            return
+        idx = lb.curselection()[0]
+        a = armors_data[idx]
+        tags_str = ', '.join(a[2]) if len(a) > 2 else ''
+        dlg = ArmorDialog(editor, title="Edit Armor", name=a[0], bonus=a[1], tags=tags_str)
+        if dlg.result:
+            armors_data[idx] = [dlg.result[0], dlg.result[1], dlg.result[2]]
+            save_armors_data()
+            detect_list_keywords()
+            update_keywords_listbox()
+            update_keyword_highlights()
+            refresh()
+
+    def remove_item():
+        if not lb.curselection():
+            return
+        idx = lb.curselection()[0]
+        armors_data.pop(idx)
+        save_armors_data()
+        detect_list_keywords()
+        update_keywords_listbox()
+        update_keyword_highlights()
+        refresh()
+
+    tk.Button(btn_frame, text="Add", command=add_item).pack(fill=tk.X)
+    tk.Button(btn_frame, text="Edit", command=edit_item).pack(fill=tk.X)
+    tk.Button(btn_frame, text="Remove", command=remove_item).pack(fill=tk.X)
+    tk.Button(btn_frame, text="Close", command=editor.destroy).pack(fill=tk.X, pady=5)
+
+    refresh()
+
+def open_weapon_editor():
+    editor = tk.Toplevel(root)
+    editor.title("Weapon Editor")
+    lb = tk.Listbox(editor)
+    lb.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=5, pady=5)
+
+    btn_frame = tk.Frame(editor)
+    btn_frame.pack(side=tk.RIGHT, fill=tk.Y, padx=5, pady=5)
+
+    def refresh():
+        lb.delete(0, tk.END)
+        for w in weapons_data:
+            tags = w[2] if len(w) > 2 else ''
+            lb.insert(tk.END, f"{w[0]} ({w[1]}) [{tags}] {w[3]}")
+
+    def add_item():
+        dlg = WeaponDialog(editor, title="Add Weapon")
+        if dlg.result:
+            weapons_data.append([dlg.result[0], dlg.result[1], dlg.result[2], dlg.result[3]])
+            save_weapons_data()
+            detect_list_keywords()
+            update_keywords_listbox()
+            update_keyword_highlights()
+            refresh()
+
+    def edit_item():
+        if not lb.curselection():
+            return
+        idx = lb.curselection()[0]
+        w = weapons_data[idx]
+        dlg = WeaponDialog(editor, title="Edit Weapon", name=w[0], damage=w[1], tags=w[2], stat=w[3])
+        if dlg.result:
+            weapons_data[idx] = [dlg.result[0], dlg.result[1], dlg.result[2], dlg.result[3]]
+            save_weapons_data()
+            detect_list_keywords()
+            update_keywords_listbox()
+            update_keyword_highlights()
+            refresh()
+
+    def remove_item():
+        if not lb.curselection():
+            return
+        idx = lb.curselection()[0]
+        weapons_data.pop(idx)
+        save_weapons_data()
+        detect_list_keywords()
+        update_keywords_listbox()
+        update_keyword_highlights()
+        refresh()
+
+    tk.Button(btn_frame, text="Add", command=add_item).pack(fill=tk.X)
+    tk.Button(btn_frame, text="Edit", command=edit_item).pack(fill=tk.X)
+    tk.Button(btn_frame, text="Remove", command=remove_item).pack(fill=tk.X)
+    tk.Button(btn_frame, text="Close", command=editor.destroy).pack(fill=tk.X, pady=5)
+
+    refresh()
+
 # ==========================
 # Keyword Saving/Loading Functions
 # ==========================
@@ -848,6 +977,83 @@ class GroupSelectDialog(simpledialog.Dialog):
 
     def apply(self):
         self.result = self.var.get()
+
+class ArmorDialog(simpledialog.Dialog):
+    def __init__(self, master, title=None, name="", bonus="", tags=""):
+        self.initial_name = name
+        self.initial_bonus = bonus
+        self.initial_tags = tags
+        super().__init__(master, title=title)
+
+    def body(self, master):
+        tk.Label(master, text="Name:").grid(row=0, column=0, sticky="w")
+        self.entry_name = tk.Entry(master)
+        self.entry_name.grid(row=0, column=1, columnspan=2, sticky="ew")
+        self.entry_name.insert(0, self.initial_name)
+
+        tk.Label(master, text="Bonus:").grid(row=1, column=0, sticky="w")
+        self.entry_bonus = tk.Entry(master, width=5)
+        self.entry_bonus.grid(row=1, column=1, sticky="w")
+        self.entry_bonus.insert(0, str(self.initial_bonus))
+
+        tk.Label(master, text="Tags (comma):").grid(row=2, column=0, sticky="w")
+        self.entry_tags = tk.Entry(master)
+        self.entry_tags.grid(row=2, column=1, columnspan=2, sticky="ew")
+        self.entry_tags.insert(0, self.initial_tags)
+        return self.entry_name
+
+    def apply(self):
+        try:
+            bonus = int(self.entry_bonus.get())
+        except ValueError:
+            bonus = 0
+        self.result = (
+            self.entry_name.get().strip(),
+            bonus,
+            [t.strip() for t in self.entry_tags.get().split(',') if t.strip()],
+        )
+
+class WeaponDialog(simpledialog.Dialog):
+    def __init__(self, master, title=None, name="", damage="", tags="", stat=""):
+        self.initial_name = name
+        self.initial_damage = damage
+        self.initial_tags = tags
+        self.initial_stat = stat
+        super().__init__(master, title=title)
+
+    def body(self, master):
+        tk.Label(master, text="Name:").grid(row=0, column=0, sticky="w")
+        self.entry_name = tk.Entry(master)
+        self.entry_name.grid(row=0, column=1, columnspan=2, sticky="ew")
+        self.entry_name.insert(0, self.initial_name)
+
+        tk.Label(master, text="Damage:").grid(row=1, column=0, sticky="w")
+        self.entry_damage = tk.Entry(master, width=5)
+        self.entry_damage.grid(row=1, column=1, sticky="w")
+        self.entry_damage.insert(0, str(self.initial_damage))
+
+        tk.Label(master, text="Tags:").grid(row=2, column=0, sticky="w")
+        self.entry_tags = tk.Entry(master)
+        self.entry_tags.grid(row=2, column=1, columnspan=2, sticky="ew")
+        self.entry_tags.insert(0, self.initial_tags)
+
+        tk.Label(master, text="Stat:").grid(row=3, column=0, sticky="w")
+        self.entry_stat = tk.Entry(master, width=5)
+        self.entry_stat.grid(row=3, column=1, sticky="w")
+        self.entry_stat.insert(0, self.initial_stat)
+        return self.entry_name
+
+    def apply(self):
+        try:
+            dmg = int(self.entry_damage.get())
+        except ValueError:
+            dmg = 0
+        self.result = (
+            self.entry_name.get().strip(),
+            dmg,
+            self.entry_tags.get().strip(),
+            self.entry_stat.get().strip(),
+        )
 
 def add_keyword():
     global keywords
@@ -1514,6 +1720,8 @@ if __name__ == '__main__':
     btn_save_armor.grid(row=2, column=2, columnspan=2)
     armor_preset_menu = tk.OptionMenu(armor_gen_frame, armor_preset_var, "")
     armor_preset_menu.grid(row=2, column=4, columnspan=2)
+    btn_edit_armor = tk.Button(armor_gen_frame, text="Edit Armors", command=open_armor_editor)
+    btn_edit_armor.grid(row=3, column=0, columnspan=6, pady=5)
 
     # --- Weapon Generation Controls Subframe ---
     weapon_gen_frame = tk.LabelFrame(control_frame, text="Weapon Generation Controls")
@@ -1533,6 +1741,8 @@ if __name__ == '__main__':
     btn_save_weapon.grid(row=2, column=2, columnspan=2)
     weapon_preset_menu = tk.OptionMenu(weapon_gen_frame, weapon_preset_var, "")
     weapon_preset_menu.grid(row=2, column=4, columnspan=2)
+    btn_edit_weapon = tk.Button(weapon_gen_frame, text="Edit Weapons", command=open_weapon_editor)
+    btn_edit_weapon.grid(row=3, column=0, columnspan=6, pady=5)
 
     # --- Power Generation Controls Subframe ---
     power_gen_frame = tk.LabelFrame(control_frame, text="Power Generation Controls")
