@@ -674,6 +674,64 @@ def open_weapon_editor():
 
     refresh()
 
+def open_armor_selector():
+    """Allow selecting armor entries to add directly to the current character."""
+    global global_armor
+    dialog = tk.Toplevel(root)
+    dialog.title("Select Armor")
+    lb = tk.Listbox(dialog, selectmode=tk.MULTIPLE)
+    lb.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=5, pady=5)
+
+    for armor in armors_data:
+        tags = ', '.join(armor[2]) if len(armor) > 2 else ''
+        lb.insert(tk.END, f"{armor[0]} ({armor[1]}) [{tags}]")
+
+    btn_frame = tk.Frame(dialog)
+    btn_frame.pack(side=tk.RIGHT, fill=tk.Y, padx=5, pady=5)
+
+    def add_selected():
+        sel = lb.curselection()
+        if not sel:
+            return
+        for idx in sel:
+            name, bonus, tags = armors_data[idx]
+            global_armor.append({'name': name, 'bonus': bonus, 'tags': tags})
+        refresh_display()
+        dialog.destroy()
+
+    tk.Button(btn_frame, text="Add Selected", command=add_selected).pack(fill=tk.X)
+    tk.Button(btn_frame, text="Cancel", command=dialog.destroy).pack(fill=tk.X, pady=5)
+    lb.focus_set()
+
+def open_weapon_selector():
+    """Allow selecting weapon entries to add directly to the current character."""
+    global global_weapons
+    dialog = tk.Toplevel(root)
+    dialog.title("Select Weapons")
+    lb = tk.Listbox(dialog, selectmode=tk.MULTIPLE)
+    lb.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=5, pady=5)
+
+    for weapon in weapons_data:
+        tags = weapon[2] if len(weapon) > 2 else ''
+        lb.insert(tk.END, f"{weapon[0]} ({weapon[1]}) [{tags}] {weapon[3]}")
+
+    btn_frame = tk.Frame(dialog)
+    btn_frame.pack(side=tk.RIGHT, fill=tk.Y, padx=5, pady=5)
+
+    def add_selected():
+        sel = lb.curselection()
+        if not sel:
+            return
+        for idx in sel:
+            name, damage, tags, stat = weapons_data[idx]
+            global_weapons.append({'name': name, 'damage': damage, 'tags': tags, 'stat': stat})
+        refresh_display()
+        dialog.destroy()
+
+    tk.Button(btn_frame, text="Add Selected", command=add_selected).pack(fill=tk.X)
+    tk.Button(btn_frame, text="Cancel", command=dialog.destroy).pack(fill=tk.X, pady=5)
+    lb.focus_set()
+
 # ==========================
 # Keyword Saving/Loading Functions
 # ==========================
@@ -1757,6 +1815,8 @@ if __name__ == '__main__':
     armor_preset_menu.grid(row=2, column=4, columnspan=2)
     btn_edit_armor = tk.Button(armor_gen_frame, text="Edit Armors", command=open_armor_editor)
     btn_edit_armor.grid(row=3, column=0, columnspan=6, pady=5)
+    btn_add_armor = tk.Button(armor_gen_frame, text="Add From List", command=open_armor_selector)
+    btn_add_armor.grid(row=4, column=0, columnspan=6, pady=5)
 
     # --- Weapon Generation Controls Subframe ---
     weapon_gen_frame = tk.LabelFrame(control_frame, text="Weapon Generation Controls")
@@ -1778,6 +1838,8 @@ if __name__ == '__main__':
     weapon_preset_menu.grid(row=2, column=4, columnspan=2)
     btn_edit_weapon = tk.Button(weapon_gen_frame, text="Edit Weapons", command=open_weapon_editor)
     btn_edit_weapon.grid(row=3, column=0, columnspan=6, pady=5)
+    btn_add_weapon = tk.Button(weapon_gen_frame, text="Add From List", command=open_weapon_selector)
+    btn_add_weapon.grid(row=4, column=0, columnspan=6, pady=5)
 
     # --- Power Generation Controls Subframe ---
     power_gen_frame = tk.LabelFrame(control_frame, text="Power Generation Controls")
