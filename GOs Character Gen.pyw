@@ -598,13 +598,29 @@ def update_keywords_listbox():
         for k in sorted(keywords.keys()):
             keywords_listbox.insert(tk.END, k)
 
+class KeywordDialog(simpledialog.Dialog):
+    def body(self, master):
+        tk.Label(master, text="Keyword:").grid(row=0, column=0, sticky="w")
+        self.entry_name = tk.Entry(master)
+        self.entry_name.grid(row=0, column=1, sticky="ew")
+        tk.Label(master, text="Description:").grid(row=1, column=0, sticky="nw")
+        self.entry_desc = tk.Text(master, width=30, height=4)
+        self.entry_desc.grid(row=1, column=1, sticky="ew")
+        return self.entry_name
+
+    def apply(self):
+        self.result = (
+            self.entry_name.get().strip(),
+            self.entry_desc.get("1.0", tk.END).strip(),
+        )
+
 def add_keyword():
     global keywords
-    name = simpledialog.askstring("Add Keyword", "Enter keyword:")
-    if not name:
+    dialog = KeywordDialog(root, title="Add Keyword")
+    if dialog.result is None:
         return
-    desc = simpledialog.askstring("Add Keyword", "Enter description:")
-    if desc is None:
+    name, desc = dialog.result
+    if not name:
         return
     keywords[name] = desc
     save_keywords_to_file()
