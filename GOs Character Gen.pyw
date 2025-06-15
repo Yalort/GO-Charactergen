@@ -792,6 +792,21 @@ class KeywordDialog(simpledialog.Dialog):
             self.entry_desc.get("1.0", tk.END).strip(),
         )
 
+class GroupSelectDialog(simpledialog.Dialog):
+    def __init__(self, master, title=None, groups=None):
+        self.groups = groups or []
+        self.var = tk.StringVar(value=self.groups[0] if self.groups else "")
+        super().__init__(master, title=title)
+
+    def body(self, master):
+        tk.Label(master, text="Select group:").pack(padx=5, pady=5)
+        self.option = tk.OptionMenu(master, self.var, *self.groups)
+        self.option.pack(padx=5, pady=5)
+        return self.option
+
+    def apply(self):
+        self.result = self.var.get()
+
 def add_keyword():
     global keywords
     dialog = KeywordDialog(root, title="Add Keyword")
@@ -1274,7 +1289,8 @@ def edit_group():
 def remove_group():
     if not groups:
         return
-    name = simpledialog.askstring("Remove Group", "Group to remove:")
+    dialog = GroupSelectDialog(root, title="Remove Group", groups=groups)
+    name = dialog.result
     if not name or name not in groups:
         return
     groups.remove(name)
