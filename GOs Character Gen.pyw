@@ -1,7 +1,7 @@
 import tkinter as tk
 import tkinter.simpledialog as simpledialog
 import tkinter.ttk as ttk
-import random, os, json
+import random, os, json, re
 
 # ==========================
 # Global State Variables
@@ -12,7 +12,7 @@ global_weapons = []     # List of weapon dictionaries.
 global_powers = []      # List of power dictionaries.
 characters = {}         # Saved characters
 groups = []             # Character groups
-keywords = {}           # Keyword -> description
+keywords = {}           # Keyword -> {'desc': str, 'variable': bool}
 save_group_listbox = None
 filter_group_var = None
 filter_group_menu = None
@@ -96,9 +96,26 @@ def detect_list_keywords():
             found.update(t.strip() for t in w[2].split(',') if t.strip())
     added = False
     for kw in found:
-        if kw not in keywords:
-            keywords[kw] = "Description TBD"
-            added = True
+        m = re.match(r"(.+)\((\d+)\)$", kw)
+        if m:
+            base = m.group(1).strip()
+            if base not in keywords:
+                keywords[base] = {"desc": "Description TBD", "variable": True}
+                added = True
+            else:
+                info = keywords[base]
+                if isinstance(info, str):
+                    keywords[base] = {"desc": info, "variable": True}
+                elif isinstance(info, dict):
+                    info["variable"] = True
+        else:
+            if kw not in keywords:
+                keywords[kw] = {"desc": "Description TBD", "variable": False}
+                added = True
+            else:
+                info = keywords[kw]
+                if isinstance(info, str):
+                    keywords[kw] = {"desc": info, "variable": False}
     if added:
         save_keywords_to_file()
 
@@ -535,7 +552,16 @@ def load_keywords():
     if os.path.exists(keywords_file):
         try:
             with open(keywords_file, "r") as f:
-                keywords = json.load(f)
+                data = json.load(f)
+            keywords = {}
+            for k, v in data.items():
+                if isinstance(v, dict):
+                    keywords[k] = {
+                        "desc": v.get("desc", ""),
+                        "variable": bool(v.get("variable", False)),
+                    }
+                else:
+                    keywords[k] = {"desc": v, "variable": False}
         except Exception as e:
             print("Error loading keywords:", e)
             keywords = {}
@@ -767,12 +793,15 @@ def update_keywords_listbox():
     if keywords_listbox is not None:
         keywords_listbox.delete(0, tk.END)
         for k in sorted(keywords.keys()):
-            keywords_listbox.insert(tk.END, k)
+            info = keywords[k]
+            display = f"{k}(X)" if info.get("variable") else k
+            keywords_listbox.insert(tk.END, display)
 
 class KeywordDialog(simpledialog.Dialog):
-    def __init__(self, master, title=None, name="", desc=""):
+    def __init__(self, master, title=None, name="", desc="", variable=False):
         self.initial_name = name
         self.initial_desc = desc
+        self.initial_variable = variable
         super().__init__(master, title=title)
 
     def body(self, master):
@@ -780,9 +809,13 @@ class KeywordDialog(simpledialog.Dialog):
         self.entry_name = tk.Entry(master)
         self.entry_name.grid(row=0, column=1, sticky="ew")
         self.entry_name.insert(0, self.initial_name)
+
+        self.var_variable = tk.BooleanVar(value=self.initial_variable)
+        tk.Checkbutton(master, text="Variable Level", variable=self.var_variable).grid(row=0, column=2, padx=5)
+
         tk.Label(master, text="Description:").grid(row=1, column=0, sticky="nw")
         self.entry_desc = tk.Text(master, width=30, height=4)
-        self.entry_desc.grid(row=1, column=1, sticky="ew")
+        self.entry_desc.grid(row=1, column=1, columnspan=2, sticky="ew")
         self.entry_desc.insert("1.0", self.initial_desc)
         return self.entry_name
 
@@ -790,6 +823,7 @@ class KeywordDialog(simpledialog.Dialog):
         self.result = (
             self.entry_name.get().strip(),
             self.entry_desc.get("1.0", tk.END).strip(),
+            self.var_variable.get(),
         )
 
 class GroupSelectDialog(simpledialog.Dialog):
@@ -812,10 +846,10 @@ def add_keyword():
     dialog = KeywordDialog(root, title="Add Keyword")
     if dialog.result is None:
         return
-    name, desc = dialog.result
+    name, desc, variable = dialog.result
     if not name:
         return
-    keywords[name] = desc
+    keywords[name] = {"desc": desc, "variable": variable}
     save_keywords_to_file()
     update_keywords_listbox()
     update_keyword_highlights()
@@ -823,16 +857,18 @@ def add_keyword():
 def edit_keyword():
     if keywords_listbox is None or not keywords_listbox.curselection():
         return
-    old = keywords_listbox.get(keywords_listbox.curselection()[0])
-    dialog = KeywordDialog(root, title="Edit Keyword", name=old, desc=keywords.get(old, ""))
+    display_old = keywords_listbox.get(keywords_listbox.curselection()[0])
+    old = display_old[:-3] if display_old.endswith("(X)") else display_old
+    info = keywords.get(old, {"desc": "", "variable": False})
+    dialog = KeywordDialog(root, title="Edit Keyword", name=old, desc=info.get("desc", ""), variable=info.get("variable", False))
     if dialog.result is None:
         return
-    name, desc = dialog.result
+    name, desc, variable = dialog.result
     if not name:
         return
     if name != old:
         keywords.pop(old, None)
-    keywords[name] = desc
+    keywords[name] = {"desc": desc, "variable": variable}
     save_keywords_to_file()
     update_keywords_listbox()
     update_keyword_highlights()
@@ -840,7 +876,8 @@ def edit_keyword():
 def remove_keyword():
     if keywords_listbox is None or not keywords_listbox.curselection():
         return
-    kw = keywords_listbox.get(keywords_listbox.curselection()[0])
+    display_kw = keywords_listbox.get(keywords_listbox.curselection()[0])
+    kw = display_kw[:-3] if display_kw.endswith("(X)") else display_kw
     if kw in keywords:
         del keywords[kw]
         save_keywords_to_file()
@@ -853,10 +890,12 @@ def on_keyword_select(event=None):
         return
     if not keywords_listbox.curselection():
         return
-    kw = keywords_listbox.get(keywords_listbox.curselection()[0])
+    display_kw = keywords_listbox.get(keywords_listbox.curselection()[0])
+    kw = display_kw[:-3] if display_kw.endswith("(X)") else display_kw
+    info = keywords.get(kw, {})
     keyword_desc_text.config(state=tk.NORMAL)
     keyword_desc_text.delete("1.0", tk.END)
-    keyword_desc_text.insert(tk.END, keywords.get(kw, ""))
+    keyword_desc_text.insert(tk.END, info.get("desc", ""))
     keyword_desc_text.config(state=tk.DISABLED)
 
 def show_tooltip(event, text):
@@ -881,19 +920,34 @@ def update_keyword_highlights():
     for tag in output_box.tag_names():
         if tag.startswith("kw_"):
             output_box.tag_delete(tag)
-    for word, desc in keywords.items():
-        start = "1.0"
-        while True:
-            idx = output_box.search(word, start, tk.END)
-            if not idx:
-                break
-            end = f"{idx}+{len(word)}c"
-            tag = f"kw_{idx.replace('.', '_')}"
-            output_box.tag_add(tag, idx, end)
-            output_box.tag_config(tag, underline=True, foreground="blue")
-            output_box.tag_bind(tag, "<Enter>", lambda e, d=desc: show_tooltip(e, d))
-            output_box.tag_bind(tag, "<Leave>", hide_tooltip)
-            start = end
+    text = output_box.get("1.0", tk.END)
+    for word, info in keywords.items():
+        desc = info.get("desc", "") if isinstance(info, dict) else info
+        variable = info.get("variable", False) if isinstance(info, dict) else False
+        if variable:
+            pattern = re.compile(re.escape(word) + r"\((\d+)\)")
+            for m in pattern.finditer(text):
+                idx_start = f"1.0+{m.start()}c"
+                idx_end = f"1.0+{m.end()}c"
+                tag = f"kw_{m.start()}_{m.end()}"
+                output_box.tag_add(tag, idx_start, idx_end)
+                output_box.tag_config(tag, underline=True, foreground="blue")
+                tooltip_text = desc.replace("{#}", m.group(1))
+                output_box.tag_bind(tag, "<Enter>", lambda e, d=tooltip_text: show_tooltip(e, d))
+                output_box.tag_bind(tag, "<Leave>", hide_tooltip)
+        else:
+            start = "1.0"
+            while True:
+                idx = output_box.search(word, start, tk.END)
+                if not idx:
+                    break
+                end = f"{idx}+{len(word)}c"
+                tag = f"kw_{idx.replace('.', '_')}"
+                output_box.tag_add(tag, idx, end)
+                output_box.tag_config(tag, underline=True, foreground="blue")
+                output_box.tag_bind(tag, "<Enter>", lambda e, d=desc: show_tooltip(e, d))
+                output_box.tag_bind(tag, "<Leave>", hide_tooltip)
+                start = end
 
 # ==========================
 # Character Saving/Loading Functions
