@@ -875,7 +875,7 @@ def open_encounter_char_dialog(enc_name):
                 encounters[enc_name].append(char_name)
         save_encounters_to_file()
         update_encounter_char_list(enc_name)
-        dialog.destroy()
+
 
     btn_frame = tk.Frame(dialog)
     btn_frame.pack(pady=5)
@@ -976,6 +976,72 @@ def update_entity_from_generator():
     ent['powers'] = list(global_powers)
     update_tracker_display()
 
+def open_tracker_char_dialog():
+    dialog = tk.Toplevel()
+    dialog.title("Add Characters to Tracker")
+
+    search_var = tk.StringVar()
+    search_entry = tk.Entry(dialog, textvariable=search_var)
+    search_entry.pack(fill=tk.X, padx=5, pady=5)
+
+    listbox = tk.Listbox(dialog, selectmode=tk.MULTIPLE)
+    listbox.pack(fill=tk.BOTH, expand=True, padx=5, pady=5)
+
+    def update_list(*args):
+        listbox.delete(0, tk.END)
+        ft = search_var.get().lower()
+        for name, data in characters.items():
+            tags = ' '.join(data.get('tags', []))
+            if ft in name.lower() or ft in tags.lower():
+                listbox.insert(tk.END, name)
+
+    search_var.trace_add("write", update_list)
+    update_list()
+
+    def add_selected():
+        sel = listbox.curselection()
+        if not sel:
+            return
+        for i in sel:
+            char_name = listbox.get(i)
+            if char_name in characters:
+                ent = create_entity_from_data(char_name, characters[char_name])
+                tracker_entities.append(ent)
+        update_tracker_list()
+
+
+    btn_frame = tk.Frame(dialog)
+    btn_frame.pack(pady=5)
+    tk.Button(btn_frame, text="Add Selected", command=add_selected).pack(side=tk.LEFT, padx=5)
+    tk.Button(btn_frame, text="Close", command=dialog.destroy).pack(side=tk.LEFT, padx=5)
+
+def import_encounter_to_tracker():
+    if not encounters:
+        return
+    dialog = tk.Toplevel()
+    dialog.title("Import Encounter")
+
+    lb = tk.Listbox(dialog)
+    lb.pack(fill=tk.BOTH, expand=True, padx=5, pady=5)
+    for name in encounters.keys():
+        lb.insert(tk.END, name)
+
+    def do_import():
+        if not lb.curselection():
+            return
+        enc = lb.get(lb.curselection()[0])
+        for char_name in encounters.get(enc, []):
+            if char_name in characters:
+                ent = create_entity_from_data(char_name, characters[char_name])
+                tracker_entities.append(ent)
+        update_tracker_list()
+        dialog.destroy()
+
+    btn_frame = tk.Frame(dialog)
+    btn_frame.pack(pady=5)
+    tk.Button(btn_frame, text="Import", command=do_import).pack(side=tk.LEFT, padx=5)
+    tk.Button(btn_frame, text="Cancel", command=dialog.destroy).pack(side=tk.LEFT, padx=5)
+
 def create_entity_from_data(name, data):
     if data.get('template'):
         old_root = global_root
@@ -984,19 +1050,29 @@ def create_entity_from_data(name, data):
         old_powers = list(global_powers)
         global_root = data['root']
         fill_root_entries(global_root)
-        if data.get('armor_preset'):
-            armor_preset_var.set(data['armor_preset'])
-            load_armor_preset(data['armor_preset'])
+        armor_settings = data.get('armor_settings', {})
+        armor_preset_var.set(armor_settings.get('preset', ''))
+        entry_armor_num.delete(0, tk.END); entry_armor_num.insert(0, armor_settings.get('number', ''))
+        entry_armor_tag.delete(0, tk.END); entry_armor_tag.insert(0, armor_settings.get('tags', ''))
+        if armor_preset_var.get():
+            load_armor_preset(armor_preset_var.get())
         generate_armors_advanced()
         armor = [a.copy() for a in global_armor]
-        if data.get('weapon_preset'):
-            weapon_preset_var.set(data['weapon_preset'])
-            load_weapon_preset(data['weapon_preset'])
+        weapon_settings = data.get('weapon_settings', {})
+        weapon_preset_var.set(weapon_settings.get('preset', ''))
+        entry_weapon_num.delete(0, tk.END); entry_weapon_num.insert(0, weapon_settings.get('number', ''))
+        entry_weapon_tag.delete(0, tk.END); entry_weapon_tag.insert(0, weapon_settings.get('tags', ''))
+        if weapon_preset_var.get():
+            load_weapon_preset(weapon_preset_var.get())
         generate_weapons_advanced()
         weapons = [w.copy() for w in global_weapons]
-        if data.get('power_preset'):
-            power_preset_var.set(data['power_preset'])
-            load_power_preset(data['power_preset'])
+        power_settings = data.get('power_settings', {})
+        power_preset_var.set(power_settings.get('preset', ''))
+        entry_power_base.delete(0, tk.END); entry_power_base.insert(0, power_settings.get('base', ''))
+        entry_power_extra.delete(0, tk.END); entry_power_extra.insert(0, power_settings.get('extra', ''))
+        entry_power_ranks.delete(0, tk.END); entry_power_ranks.insert(0, power_settings.get('extra_ranks', ''))
+        if power_preset_var.get():
+            load_power_preset(power_preset_var.get())
         generate_powers_advanced()
         powers = [p.copy() for p in global_powers]
         global_root, global_armor, global_weapons, global_powers = (
@@ -1350,9 +1426,22 @@ def save_template():
         "groups": selected_groups,
         "root": global_root,
         "template": True,
-        "armor_preset": armor_preset_var.get(),
-        "weapon_preset": weapon_preset_var.get(),
-        "power_preset": power_preset_var.get()
+        "armor_settings": {
+            "preset": armor_preset_var.get(),
+            "number": entry_armor_num.get(),
+            "tags": entry_armor_tag.get()
+        },
+        "weapon_settings": {
+            "preset": weapon_preset_var.get(),
+            "number": entry_weapon_num.get(),
+            "tags": entry_weapon_tag.get()
+        },
+        "power_settings": {
+            "preset": power_preset_var.get(),
+            "base": entry_power_base.get(),
+            "extra": entry_power_extra.get(),
+            "extra_ranks": entry_power_ranks.get()
+        }
     }
     save_characters_to_file()
     update_character_list()
@@ -1381,9 +1470,23 @@ def edit_character():
     else:
         clear_root()
     if data.get("template"):
-        armor_preset_var.set(data.get("armor_preset", ""))
-        weapon_preset_var.set(data.get("weapon_preset", ""))
-        power_preset_var.set(data.get("power_preset", ""))
+        armor_settings = data.get("armor_settings", {})
+        weapon_settings = data.get("weapon_settings", {})
+        power_settings = data.get("power_settings", {})
+
+        armor_preset_var.set(armor_settings.get("preset", ""))
+        entry_armor_num.delete(0, tk.END); entry_armor_num.insert(0, armor_settings.get("number", ""))
+        entry_armor_tag.delete(0, tk.END); entry_armor_tag.insert(0, armor_settings.get("tags", ""))
+
+        weapon_preset_var.set(weapon_settings.get("preset", ""))
+        entry_weapon_num.delete(0, tk.END); entry_weapon_num.insert(0, weapon_settings.get("number", ""))
+        entry_weapon_tag.delete(0, tk.END); entry_weapon_tag.insert(0, weapon_settings.get("tags", ""))
+
+        power_preset_var.set(power_settings.get("preset", ""))
+        entry_power_base.delete(0, tk.END); entry_power_base.insert(0, power_settings.get("base", ""))
+        entry_power_extra.delete(0, tk.END); entry_power_extra.insert(0, power_settings.get("extra", ""))
+        entry_power_ranks.delete(0, tk.END); entry_power_ranks.insert(0, power_settings.get("extra_ranks", ""))
+
         global_armor = []
         global_weapons = []
         global_powers = []
@@ -1945,6 +2048,10 @@ if __name__ == '__main__':
 
     tracker_btn_frame = tk.Frame(tracker_tab)
     tracker_btn_frame.pack(side=tk.RIGHT, fill=tk.Y)
+    btn_add_tracker = tk.Button(tracker_btn_frame, text="Add Char", command=open_tracker_char_dialog)
+    btn_add_tracker.pack(fill=tk.X, padx=5, pady=2)
+    btn_import_enc = tk.Button(tracker_btn_frame, text="Import Encounter", command=import_encounter_to_tracker)
+    btn_import_enc.pack(fill=tk.X, padx=5, pady=2)
     btn_remove_entity = tk.Button(tracker_btn_frame, text="Remove", command=remove_selected_entity)
     btn_remove_entity.pack(fill=tk.X, padx=5, pady=2)
     btn_load_entity = tk.Button(tracker_btn_frame, text="Load To Generator", command=load_entity_to_generator)
