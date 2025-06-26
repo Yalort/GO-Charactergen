@@ -109,7 +109,7 @@
     [
       "Modern",
       "Heavy",
-      "Ablative"
+      "Ablative(1)"
     ]
   ],
   [
@@ -145,7 +145,7 @@
       "Modern",
       "Heavy",
       "Sealed",
-      "Ablative"
+      "Ablative(4)"
     ]
   ],
   [
@@ -153,7 +153,7 @@
     24,
     [
       "Postmodern",
-      "Power",
+      "Powered",
       "Medium"
     ]
   ],
@@ -164,7 +164,7 @@
       "Postmodern",
       "Medium",
       "Nanite",
-      "Ablative"
+      "Ablative(16)"
     ]
   ],
   [
@@ -174,7 +174,7 @@
       "Postmodern",
       "Nanite",
       "Sealed",
-      "Ablative",
+      "Ablative(22)",
       "Medium"
     ]
   ],
@@ -183,7 +183,7 @@
     26,
     [
       "Postmodern",
-      "Power",
+      "Powered",
       "Sealed",
       "Light"
     ]
@@ -193,10 +193,10 @@
     30,
     [
       "Postmodern",
-      "Power",
+      "Powered",
       "Heavy",
       "Sealed",
-      "Ablative"
+      "Ablative(20)"
     ]
   ],
   [
@@ -223,10 +223,10 @@
     30,
     [
       "Postmodern",
-      "Power",
+      "Powered",
       "Heavy",
       "Sealed",
-      "Ablative"
+      "Ablative(100)"
     ]
   ],
   [
@@ -235,7 +235,7 @@
     [
       "Postmodern",
       "Medium",
-      "Power"
+      "Powered"
     ]
   ],
   [
