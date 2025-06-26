@@ -36,7 +36,7 @@
     "variable": false
   },
   "Heavy": {
-    "desc": "Grants a -5 penalty to stealth, athletics, and acrobatics unless the user has STR 4 or higher.",
+    "desc": "Grants a -5 penalty to stealth, athletics, and acrobatics unless the user has STR 4 or higher. {AGL(-3)}",
     "variable": false
   },
   "Hooking": {
@@ -56,7 +56,7 @@
     "variable": false
   },
   "Medium": {
-    "desc": "Grants a -2 penalty to stealth, athletics, and acrobatics unless the user has STR 2 or higher.",
+    "desc": "Grants a -2 penalty to stealth, athletics, and acrobatics unless the user has STR 2 or higher. {AGL(-1)}",
     "variable": false
   },
   "Melee": {
