@@ -89,6 +89,8 @@ Keywords Tab
 ------------
 - Contains keyword definitions used for tooltips in the output box.
 - Use Add, Edit and Remove to manage them.
+- When a keyword is marked as variable it will appear as `Keyword(X)`. Include
+  `{#}` in the description to show the numeric level in tooltips.
 
 Encounters Tab
 --------------
@@ -1343,6 +1345,10 @@ class KeywordDialog(simpledialog.Dialog):
         self.entry_desc = tk.Text(master, width=30, height=4)
         self.entry_desc.grid(row=1, column=1, columnspan=2, sticky="ew")
         self.entry_desc.insert("1.0", self.initial_desc)
+        tk.Label(
+            master,
+            text="Use {#} in the description to include the level for variable keywords."
+        ).grid(row=2, column=1, columnspan=2, sticky="w", pady=(2, 0))
         return self.entry_name
 
     def apply(self):
