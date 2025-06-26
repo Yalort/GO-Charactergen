@@ -1,122 +1,122 @@
 {
   "2-Hand": {
-    "desc": "",
+    "desc": "Requires two hands to use.",
     "variable": false
   },
   "Ablative": {
-    "desc": "",
-    "variable": false
+    "desc": "Negates up to {#} ranks of piercing.",
+    "variable": true
   },
   "Ammunition": {
-    "desc": "",
+    "desc": "Requires ammunition to use.",
     "variable": false
   },
   "Brutal": {
-    "desc": "",
+    "desc": "Grants a +2 bonus to intimidation.",
     "variable": false
   },
   "Cleaving": {
-    "desc": "",
+    "desc": "Severs the hit body part on a critical hit.",
     "variable": false
   },
   "Crushing": {
-    "desc": "",
+    "desc": "Weakens armor by {#} ranks.",
     "variable": true
   },
   "Defensive": {
-    "desc": "",
+    "desc": "Grants a +5 bonus to defend checks.",
     "variable": false
   },
   "Entangling": {
-    "desc": "",
+    "desc": "Grants the fast grab advantage, and a +2 to grapple checks.",
     "variable": false
   },
   "Finesse": {
-    "desc": "",
+    "desc": "Uses the character's dexterity modifier rather than strength.",
     "variable": false
   },
   "Heavy": {
-    "desc": "",
+    "desc": "Grants a -5 penalty to stealth, athletics, and acrobatics unless the user has STR 4 or higher.",
     "variable": false
   },
   "Hooking": {
-    "desc": "",
+    "desc": "Grants a +2 to disarm checks and a free weapon bind.",
     "variable": false
   },
   "Improved Crit": {
-    "desc": "",
+    "desc": "Reduces the number required for a critical hit by {#}.",
     "variable": true
   },
   "Light": {
-    "desc": "",
+    "desc": "Can be used by anyone including children and the infirm.",
     "variable": false
   },
   "Medieval": {
-    "desc": "",
+    "desc": "Exists in the medieval era, either modern or the first medieval period.",
     "variable": false
   },
   "Medium": {
-    "desc": "",
+    "desc": "Grants a -2 penalty to stealth, athletics, and acrobatics unless the user has STR 2 or higher.",
     "variable": false
   },
   "Melee": {
-    "desc": "",
+    "desc": "A weapon effective only at close range.",
     "variable": false
   },
   "Modern": {
-    "desc": "",
+    "desc": "Widely available in the 2000s to 2040s.",
     "variable": false
   },
   "Multiattack": {
-    "desc": "",
+    "desc": "Allows the user to declare up to {#} extra attacks on a single target or multiple targets.",
     "variable": true
   },
   "Nanite": {
-    "desc": "",
+    "desc": "Utilizes nanite technology and is thus vulnerable to EMP or other forms of nanite disruption.",
     "variable": false
   },
   "Piercing": {
-    "desc": "",
+    "desc": "Ignores up to {#} ranks of armor.",
     "variable": true
   },
   "Postmodern": {
-    "desc": "",
+    "desc": "Existed only in the 2040s to 2050s as advanced technology.",
     "variable": false
   },
-  "Power": {
-    "desc": "",
+  "Powered": {
+    "desc": "Requires a power source to operate properly.",
     "variable": false
   },
   "Ranged": {
-    "desc": "",
+    "desc": "A weapon effective at range, up to a certain distance.",
     "variable": false
   },
   "Reach": {
-    "desc": "",
+    "desc": "Can be used in melee up to {#}ft away.",
     "variable": true
   },
   "Reload": {
-    "desc": "",
+    "desc": "Requires a bonus action to reload when empty.",
     "variable": false
   },
   "Riposte": {
-    "desc": "",
-    "variable": false
+    "desc": "Grants reflect {#} when defending.",
+    "variable": true
   },
   "Sealed": {
-    "desc": "",
+    "desc": "Grants immunity to environmental conditions such as extreme heat or cold, radiation, vaccuum, and poisonous substances.",
     "variable": false
   },
   "Stealth": {
-    "desc": "",
-    "variable": false
+    "desc": "Grants a +{#} bonus to stealth.",
+    "variable": true
   },
   "Thrown": {
-    "desc": "",
+    "desc": "Can be thrown effectively and doesn't incur a penalty.",
     "variable": false
   },
   "Unwieldy": {
-    "desc": "",
+    "desc": "Requires special training, equipment, or anatomy to use effectively.",
     "variable": false
   }
 }
