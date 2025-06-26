@@ -28,6 +28,9 @@ tracker_display = None
 armor_listbox = None
 weapon_listbox = None
 
+# Base stats supported for keyword modifiers
+STAT_KEYS = ["STR", "AGL", "FGT", "AWE", "STA", "DEX", "INT", "PRE"]
+
 # ==========================
 # Presets Data and File Path
 # ==========================
@@ -90,7 +93,9 @@ Keywords Tab
 - Contains keyword definitions used for tooltips in the output box.
 - Use Add, Edit and Remove to manage them.
 - When a keyword is marked as variable it will appear as `Keyword(X)`. Include
-  `{#}` in the description to show the numeric level in tooltips.
+  `{#}` in the description to show the numeric level in tooltips. Keywords can
+  also modify base stats by including placeholders like `{AGL(+3)}` or
+  `{INT(-2)}` in the description.
 
 Encounters Tab
 --------------
@@ -175,6 +180,27 @@ def detect_list_keywords():
                     keywords[kw] = {"desc": info, "variable": False}
     if added:
         save_keywords_to_file()
+
+def calculate_stat_modifiers(items):
+    """Return a dict of stat adjustments from item keywords."""
+    mods = {k: 0 for k in STAT_KEYS}
+    pattern = re.compile(r"\{([A-Z]{3})\(([+-]?\d+)\)\}")
+    for item in items:
+        for tag in item.get('tags', []):
+            m = re.match(r"(.+)\((\d+)\)$", tag)
+            base = m.group(1) if m else tag
+            level = int(m.group(2)) if m else None
+            info = keywords.get(base)
+            if not info:
+                continue
+            desc = info.get('desc', '') if isinstance(info, dict) else info
+            variable = info.get('variable', False) if isinstance(info, dict) else False
+            if variable and level is not None:
+                desc = desc.replace('{#}', str(level))
+            for stat, val in pattern.findall(desc):
+                if stat in mods:
+                    mods[stat] += int(val)
+    return mods
 
 # Power list: index 0 corresponds to Frequency #1, etc.
 power_list = [
@@ -359,60 +385,65 @@ def update_weapon_listbox():
 def refresh_display():
     if global_root is not None:
         total_dex_penalty = 0
-        total_agl_penalty = 0
         total_speed_penalty = 0
         if global_armor:
             for armor in global_armor:
                 tags_lower = [t.lower() for t in armor['tags']]
                 if "power" in tags_lower:
                     penalty_dex = 0
-                    penalty_agl = 0
                     penalty_speed = 0
                 else:
                     if "medium" in tags_lower:
                         penalty_dex = -1
-                        penalty_agl = -1
                         penalty_speed = 0
                     elif "heavy" in tags_lower:
                         penalty_dex = -3
-                        penalty_agl = -3
                         penalty_speed = -5
                     else:
                         penalty_dex = 0
-                        penalty_agl = 0
                         penalty_speed = 0
                 total_dex_penalty += penalty_dex
-                total_agl_penalty += penalty_agl
                 total_speed_penalty += penalty_speed
-        base_agl = global_root['AGL']
-        effective_agl = base_agl + total_agl_penalty
-        agl_display = f"{base_agl}+(AGL){total_agl_penalty}({effective_agl})"
-        base_dex = global_root['DEX']
-        effective_dex = base_dex + total_dex_penalty
-        dex_display = f"{base_dex}+(DEX){total_dex_penalty}({effective_dex})"
+
+        stat_mods = calculate_stat_modifiers(global_armor + global_weapons)
+
+        effective = {}
+        displays = {}
+        for stat in STAT_KEYS:
+            base = global_root.get(stat, 0)
+            mod = stat_mods.get(stat, 0)
+            if stat == "DEX":
+                mod += total_dex_penalty
+            effective[stat] = base + mod
+            displays[stat] = f"{base}+(%s){mod}({effective[stat]})" % stat if mod else str(base)
+
         base_sta = global_root['STA']
         toughness_base = global_root['Toughness']
-        toughness_total = toughness_base + base_sta
+        toughness_total = toughness_base + effective['STA']
         effective_speed = 30 + total_speed_penalty
         speed_display = f"({effective_speed})"
-        root_line = (f"STR:{global_root['STR']} "
-                     f"AGL:{agl_display} "
-                     f"FGT:{global_root['FGT']} "
-                     f"AWE:{global_root['AWE']} "
-                     f"STA:{global_root['STA']} "
-                     f"DEX:{dex_display} "
-                     f"INT:{global_root['INT']} "
-                     f"PRE:{global_root['PRE']}")
-        dodge_total = global_root['Dodge'] + global_root['AGL']
-        parry_total = global_root['Parry'] + global_root['FGT']
-        fortitude_total = global_root['Fortitude'] + global_root['STA']
-        will_total = global_root['Will'] + global_root['AWE']
-        derived_line = (f"Dodge:{dodge_total} "
-                        f"Parry:{parry_total} "
-                        f"Fortitude:{fortitude_total} "
-                        f"Toughness:{toughness_total} "
-                        f"Will:{will_total} "
-                        f"Speed:{speed_display}")
+        root_line = (
+            f"STR:{displays['STR']} "
+            f"AGL:{displays['AGL']} "
+            f"FGT:{displays['FGT']} "
+            f"AWE:{displays['AWE']} "
+            f"STA:{displays['STA']} "
+            f"DEX:{displays['DEX']} "
+            f"INT:{displays['INT']} "
+            f"PRE:{displays['PRE']}"
+        )
+        dodge_total = global_root['Dodge'] + effective['AGL']
+        parry_total = global_root['Parry'] + effective['FGT']
+        fortitude_total = global_root['Fortitude'] + effective['STA']
+        will_total = global_root['Will'] + effective['AWE']
+        derived_line = (
+            f"Dodge:{dodge_total} "
+            f"Parry:{parry_total} "
+            f"Fortitude:{fortitude_total} "
+            f"Toughness:{toughness_total} "
+            f"Will:{will_total} "
+            f"Speed:{speed_display}"
+        )
     else:
         root_line = ("STR: None AGL: None FGT: None AWE: None STA: None "
                      "DEX: None INT: None PRE: None")
@@ -432,11 +463,11 @@ def refresh_display():
             mod_display = ""
             if global_root is not None:
                 if weapon['stat'] == "STR":
-                    mod = global_root['STR']
+                    mod = effective['STR']
                     effective_damage = base_damage + mod
                     mod_display = f"{base_damage}+(STR){mod}({effective_damage})"
                 elif weapon['stat'] == "DEX" and "finesse" in weapon['tags'].lower():
-                    mod = global_root['DEX']
+                    mod = effective['DEX']
                     effective_damage = base_damage + mod
                     mod_display = f"{base_damage}+(DEX){mod}({effective_damage})"
                 else:
@@ -1349,6 +1380,10 @@ class KeywordDialog(simpledialog.Dialog):
             master,
             text="Use {#} in the description to include the level for variable keywords."
         ).grid(row=2, column=1, columnspan=2, sticky="w", pady=(2, 0))
+        tk.Label(
+            master,
+            text="Use {STAT(+/-#)} to modify base stats when equipped."
+        ).grid(row=3, column=1, columnspan=2, sticky="w")
         return self.entry_name
 
     def apply(self):
