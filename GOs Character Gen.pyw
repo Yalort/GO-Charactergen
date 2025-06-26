@@ -52,6 +52,48 @@ default_keywords_path = os.path.join(os.path.dirname(__file__), "default_keyword
 armors_data = []
 weapons_data = []
 
+# ==========================
+# Help Text
+# ==========================
+HELP_TEXT = """GO-Charactergen Help
+====================
+
+Generator Tab
+-------------
+- Use the Root Editor to enter or randomly generate base attributes.
+- Armor, weapon and power sections allow generating items based on presets or tag filters.
+- Click the Generate buttons to populate each section. The Clear buttons remove current entries.
+- The output box shows the assembled character and highlights keywords.
+- Save Character stores the result, while Save Template saves generation settings for reuse.
+
+Characters Tab
+--------------
+- Lists all saved characters. Selecting one displays its details.
+- Use the search box and group menu to filter characters.
+- Right click a character to edit or delete it.
+- Buttons at the bottom manage groups and add the selected character to the tracker.
+
+Keywords Tab
+------------
+- Contains keyword definitions used for tooltips in the output box.
+- Use Add, Edit and Remove to manage them.
+
+Encounters Tab
+--------------
+- Encounters are named collections of characters.
+- Add Encounter creates a new entry. Add Char adds characters to it.
+- Generate From Group builds an encounter from an existing group.
+
+Tracker Tab
+-----------
+- Tracks an active set of characters during play.
+- Add Char opens a selector to choose characters. Import Encounter loads a saved encounter.
+- Load To Generator copies the selected entity back to the generator tab for editing.
+- Update From Generator pushes changes from the generator to the selected entity.
+
+All data is stored in the Documents/GOsCharacterGen directory in your user folder.
+"""
+
 def load_armor_data():
     global armors_data
     if os.path.exists(armor_file):
@@ -1800,11 +1842,13 @@ if __name__ == '__main__':
     encounters_tab = ttk.Frame(notebook)
     tracker_tab = ttk.Frame(notebook)
     keywords_tab = ttk.Frame(notebook)
+    help_tab = ttk.Frame(notebook)
     notebook.add(generator_tab, text="Generator")
     notebook.add(characters_tab, text="Characters")
     notebook.add(encounters_tab, text="Encounters")
     notebook.add(tracker_tab, text="Tracker")
     notebook.add(keywords_tab, text="Keywords")
+    notebook.add(help_tab, text="Help")
 
     root_preset_var = tk.StringVar(root)
     armor_preset_var = tk.StringVar(root)
@@ -2058,6 +2102,12 @@ if __name__ == '__main__':
     btn_load_entity.pack(fill=tk.X, padx=5, pady=2)
     btn_update_entity = tk.Button(tracker_btn_frame, text="Update From Generator", command=update_entity_from_generator)
     btn_update_entity.pack(fill=tk.X, padx=5, pady=2)
+
+    # --- Help Tab ---
+    help_text_box = tk.Text(help_tab, wrap=tk.WORD, state=tk.NORMAL)
+    help_text_box.pack(fill=tk.BOTH, expand=True, padx=5, pady=5)
+    help_text_box.insert(tk.END, HELP_TEXT)
+    help_text_box.config(state=tk.DISABLED)
 
     # Context menu for character list
     char_menu = tk.Menu(characters_tab, tearoff=0)
