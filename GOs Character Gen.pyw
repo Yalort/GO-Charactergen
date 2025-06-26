@@ -651,9 +651,6 @@ def open_armor_editor():
     sort_var = tk.StringVar(value="Name")
     tk.OptionMenu(top_frame, sort_var, "Name", "Bonus").pack(side=tk.LEFT)
 
-    filter_var.trace_add("write", refresh)
-    sort_var.trace_add("write", refresh)
-
     lb = tk.Listbox(editor)
     lb.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=5, pady=5)
 
@@ -716,6 +713,9 @@ def open_armor_editor():
         update_keyword_highlights()
         refresh()
 
+    filter_var.trace_add("write", refresh)
+    sort_var.trace_add("write", refresh)
+
     tk.Button(btn_frame, text="Add", command=add_item).pack(fill=tk.X)
     tk.Button(btn_frame, text="Edit", command=edit_item).pack(fill=tk.X)
     tk.Button(btn_frame, text="Remove", command=remove_item).pack(fill=tk.X)
@@ -737,9 +737,6 @@ def open_weapon_editor():
     tk.Label(top_frame, text="Sort:").pack(side=tk.LEFT)
     sort_var = tk.StringVar(value="Name")
     tk.OptionMenu(top_frame, sort_var, "Name", "Damage", "Stat").pack(side=tk.LEFT)
-
-    filter_var.trace_add("write", refresh)
-    sort_var.trace_add("write", refresh)
 
     lb = tk.Listbox(editor)
     lb.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=5, pady=5)
@@ -804,6 +801,9 @@ def open_weapon_editor():
         update_keywords_listbox()
         update_keyword_highlights()
         refresh()
+
+    filter_var.trace_add("write", refresh)
+    sort_var.trace_add("write", refresh)
 
     tk.Button(btn_frame, text="Add", command=add_item).pack(fill=tk.X)
     tk.Button(btn_frame, text="Edit", command=edit_item).pack(fill=tk.X)
