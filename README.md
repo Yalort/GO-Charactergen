@@ -10,7 +10,9 @@ will be displayed in the format `Keyword(X)` in the keyword list.  Use the `{#}`
 placeholder inside a keyword's description to insert the numeric level when the
 tooltip is shown.  Keywords may also modify base stats by including placeholders
 like `{STR(+2)}` or `{INT(-4)}` in their descriptions.  The modifier is applied
-when any item bearing the keyword is equipped.
+when any item bearing the keyword is equipped. Heavy and Medium armor keywords
+demonstrate this by applying agility penalties via `{AGL(-3)}` and `{AGL(-1)}`
+respectively.
 
 ## Weapons
 

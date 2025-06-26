@@ -30,6 +30,12 @@ weapon_listbox = None
 
 # Base stats supported for keyword modifiers
 STAT_KEYS = ["STR", "AGL", "FGT", "AWE", "STA", "DEX", "INT", "PRE"]
+# Pattern for stat modifier placeholders
+STAT_TAG_RE = re.compile(r"\{([A-Z]{3})\(([+-]?\d+)\)\}")
+
+def strip_stat_tags(text):
+    """Remove stat modifier placeholders from a string."""
+    return STAT_TAG_RE.sub("", text)
 
 # ==========================
 # Presets Data and File Path
@@ -1576,7 +1582,7 @@ def update_keyword_highlights():
                 tag = f"kw_{m.start()}_{m.end()}"
                 output_box.tag_add(tag, idx_start, idx_end)
                 output_box.tag_config(tag, underline=True, foreground="blue")
-                tooltip_text = desc.replace("{#}", m.group(1))
+                tooltip_text = strip_stat_tags(desc.replace("{#}", m.group(1)))
                 output_box.tag_bind(tag, "<Enter>", lambda e, d=tooltip_text: show_tooltip(e, d))
                 output_box.tag_bind(tag, "<Leave>", hide_tooltip)
         else:
@@ -1589,7 +1595,8 @@ def update_keyword_highlights():
                 tag = f"kw_{idx.replace('.', '_')}"
                 output_box.tag_add(tag, idx, end)
                 output_box.tag_config(tag, underline=True, foreground="blue")
-                output_box.tag_bind(tag, "<Enter>", lambda e, d=desc: show_tooltip(e, d))
+                clean_desc = strip_stat_tags(desc)
+                output_box.tag_bind(tag, "<Enter>", lambda e, d=clean_desc: show_tooltip(e, d))
                 output_box.tag_bind(tag, "<Leave>", hide_tooltip)
                 start = end
 
