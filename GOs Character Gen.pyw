@@ -639,15 +639,44 @@ def save_weapons_data():
 def open_armor_editor():
     editor = tk.Toplevel(root)
     editor.title("Armor Editor")
+
+    top_frame = tk.Frame(editor)
+    top_frame.pack(fill=tk.X, padx=5, pady=5)
+
+    tk.Label(top_frame, text="Filter:").pack(side=tk.LEFT)
+    filter_var = tk.StringVar()
+    tk.Entry(top_frame, textvariable=filter_var).pack(side=tk.LEFT, padx=5)
+
+    tk.Label(top_frame, text="Sort:").pack(side=tk.LEFT)
+    sort_var = tk.StringVar(value="Name")
+    tk.OptionMenu(top_frame, sort_var, "Name", "Bonus").pack(side=tk.LEFT)
+
+    filter_var.trace_add("write", refresh)
+    sort_var.trace_add("write", refresh)
+
     lb = tk.Listbox(editor)
     lb.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=5, pady=5)
 
     btn_frame = tk.Frame(editor)
     btn_frame.pack(side=tk.RIGHT, fill=tk.Y, padx=5, pady=5)
 
-    def refresh():
+    index_map = []
+
+    def refresh(*args):
         lb.delete(0, tk.END)
-        for a in armors_data:
+        data = []
+        ft = filter_var.get().lower()
+        for i, a in enumerate(armors_data):
+            tags = ', '.join(a[2]) if len(a) > 2 else ''
+            if ft and ft not in a[0].lower() and ft not in tags.lower():
+                continue
+            data.append((i, a))
+        if sort_var.get() == "Name":
+            data.sort(key=lambda x: x[1][0].lower())
+        elif sort_var.get() == "Bonus":
+            data.sort(key=lambda x: x[1][1])
+        index_map[:] = [i for i, _ in data]
+        for _, a in data:
             tags = ', '.join(a[2]) if len(a) > 2 else ''
             lb.insert(tk.END, f"{a[0]} ({a[1]}) [{tags}]")
 
@@ -664,7 +693,7 @@ def open_armor_editor():
     def edit_item():
         if not lb.curselection():
             return
-        idx = lb.curselection()[0]
+        idx = index_map[lb.curselection()[0]]
         a = armors_data[idx]
         tags_str = ', '.join(a[2]) if len(a) > 2 else ''
         dlg = ArmorDialog(editor, title="Edit Armor", name=a[0], bonus=a[1], tags=tags_str)
@@ -679,7 +708,7 @@ def open_armor_editor():
     def remove_item():
         if not lb.curselection():
             return
-        idx = lb.curselection()[0]
+        idx = index_map[lb.curselection()[0]]
         armors_data.pop(idx)
         save_armors_data()
         detect_list_keywords()
@@ -697,15 +726,47 @@ def open_armor_editor():
 def open_weapon_editor():
     editor = tk.Toplevel(root)
     editor.title("Weapon Editor")
+
+    top_frame = tk.Frame(editor)
+    top_frame.pack(fill=tk.X, padx=5, pady=5)
+
+    tk.Label(top_frame, text="Filter:").pack(side=tk.LEFT)
+    filter_var = tk.StringVar()
+    tk.Entry(top_frame, textvariable=filter_var).pack(side=tk.LEFT, padx=5)
+
+    tk.Label(top_frame, text="Sort:").pack(side=tk.LEFT)
+    sort_var = tk.StringVar(value="Name")
+    tk.OptionMenu(top_frame, sort_var, "Name", "Damage", "Stat").pack(side=tk.LEFT)
+
+    filter_var.trace_add("write", refresh)
+    sort_var.trace_add("write", refresh)
+
     lb = tk.Listbox(editor)
     lb.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=5, pady=5)
 
     btn_frame = tk.Frame(editor)
     btn_frame.pack(side=tk.RIGHT, fill=tk.Y, padx=5, pady=5)
 
-    def refresh():
+    index_map = []
+
+    def refresh(*args):
         lb.delete(0, tk.END)
-        for w in weapons_data:
+        data = []
+        ft = filter_var.get().lower()
+        for i, w in enumerate(weapons_data):
+            tags = w[2] if len(w) > 2 else ''
+            if ft and ft not in w[0].lower() and ft not in tags.lower() and ft not in w[3].lower():
+                continue
+            data.append((i, w))
+        sort_mode = sort_var.get()
+        if sort_mode == "Name":
+            data.sort(key=lambda x: x[1][0].lower())
+        elif sort_mode == "Damage":
+            data.sort(key=lambda x: x[1][1])
+        elif sort_mode == "Stat":
+            data.sort(key=lambda x: x[1][3].lower())
+        index_map[:] = [i for i, _ in data]
+        for _, w in data:
             tags = w[2] if len(w) > 2 else ''
             lb.insert(tk.END, f"{w[0]} ({w[1]}) [{tags}] {w[3]}")
 
@@ -722,7 +783,7 @@ def open_weapon_editor():
     def edit_item():
         if not lb.curselection():
             return
-        idx = lb.curselection()[0]
+        idx = index_map[lb.curselection()[0]]
         w = weapons_data[idx]
         dlg = WeaponDialog(editor, title="Edit Weapon", name=w[0], damage=w[1], tags=w[2], stat=w[3])
         if dlg.result:
@@ -736,7 +797,7 @@ def open_weapon_editor():
     def remove_item():
         if not lb.curselection():
             return
-        idx = lb.curselection()[0]
+        idx = index_map[lb.curselection()[0]]
         weapons_data.pop(idx)
         save_weapons_data()
         detect_list_keywords()
