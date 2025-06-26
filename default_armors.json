@@ -109,7 +109,7 @@
     [
       "Modern",
       "Heavy",
-      "Ablative(1)"
+      "Ablative(2)"
     ]
   ],
   [
@@ -145,7 +145,7 @@
       "Modern",
       "Heavy",
       "Sealed",
-      "Ablative(4)"
+      "Ablative(3)"
     ]
   ],
   [
@@ -153,7 +153,7 @@
     24,
     [
       "Postmodern",
-      "Powered",
+      "Power",
       "Medium"
     ]
   ],
@@ -164,7 +164,7 @@
       "Postmodern",
       "Medium",
       "Nanite",
-      "Ablative(16)"
+      "Ablative(6)"
     ]
   ],
   [
@@ -174,7 +174,7 @@
       "Postmodern",
       "Nanite",
       "Sealed",
-      "Ablative(22)",
+      "Ablative(20)",
       "Medium"
     ]
   ],
@@ -183,7 +183,7 @@
     26,
     [
       "Postmodern",
-      "Powered",
+      "Power",
       "Sealed",
       "Light"
     ]
@@ -193,10 +193,10 @@
     30,
     [
       "Postmodern",
-      "Powered",
+      "Power",
       "Heavy",
       "Sealed",
-      "Ablative(20)"
+      "Ablative(22)"
     ]
   ],
   [
@@ -223,7 +223,7 @@
     30,
     [
       "Postmodern",
-      "Powered",
+      "Power",
       "Heavy",
       "Sealed",
       "Ablative(100)"
@@ -235,7 +235,7 @@
     [
       "Postmodern",
       "Medium",
-      "Powered"
+      "Power"
     ]
   ],
   [
@@ -245,6 +245,319 @@
       "Postmodern",
       "Medium",
       "Modern"
+    ]
+  ],
+  [
+    "Bone Lamellar",
+    2,
+    [
+      "Medieval",
+      "Light"
+    ]
+  ],
+  [
+    "Padded Coat",
+    1,
+    [
+      "Medieval",
+      "Light"
+    ]
+  ],
+  [
+    "Hardened Gambeson",
+    2,
+    [
+      "Medieval",
+      "Light"
+    ]
+  ],
+  [
+    "Leather Scale",
+    3,
+    [
+      "Medieval",
+      "Light"
+    ]
+  ],
+  [
+    "Brigand Coat",
+    4,
+    [
+      "Medieval",
+      "Medium"
+    ]
+  ],
+  [
+    "Ringmail",
+    4,
+    [
+      "Medieval",
+      "Medium"
+    ]
+  ],
+  [
+    "Reinforced Brigandine",
+    5,
+    [
+      "Medieval",
+      "Medium"
+    ]
+  ],
+  [
+    "Scale Hauberk",
+    6,
+    [
+      "Medieval",
+      "Heavy"
+    ]
+  ],
+  [
+    "Heavy Chainmail",
+    6,
+    [
+      "Medieval",
+      "Heavy"
+    ]
+  ],
+  [
+    "Gothic Plate",
+    9,
+    [
+      "Medieval",
+      "Heavy"
+    ]
+  ],
+  [
+    "Basic Kevlar Vest",
+    10,
+    [
+      "Modern",
+      "Light"
+    ]
+  ],
+  [
+    "Reinforced Ballistic Vest",
+    13,
+    [
+      "Modern",
+      "Light"
+    ]
+  ],
+  [
+    "Tactical Assault Rig",
+    14,
+    [
+      "Modern",
+      "Medium"
+    ]
+  ],
+  [
+    "Combat Patrol Armor",
+    15,
+    [
+      "Modern",
+      "Medium"
+    ]
+  ],
+  [
+    "Field Plate Carrier",
+    16,
+    [
+      "Modern",
+      "Medium"
+    ]
+  ],
+  [
+    "Advanced Riot Armor",
+    17,
+    [
+      "Modern",
+      "Medium"
+    ]
+  ],
+  [
+    "Urban Combat Armor",
+    18,
+    [
+      "Modern",
+      "Heavy",
+      "Ablative(2)"
+    ]
+  ],
+  [
+    "Full Hazmat Ensemble",
+    9,
+    [
+      "Modern",
+      "Sealed",
+      "Light"
+    ]
+  ],
+  [
+    "Armored Hazmat Suit",
+    12,
+    [
+      "Modern",
+      "Sealed",
+      "Medium"
+    ]
+  ],
+  [
+    "Reinforced EOD Suit",
+    23,
+    [
+      "Modern",
+      "Heavy",
+      "Sealed",
+      "Ablative(6)"
+    ]
+  ],
+  [
+    "Nano-Plated Vest",
+    22,
+    [
+      "Postmodern",
+      "Light",
+      "Nanite"
+    ]
+  ],
+  [
+    "Tactical Nanomesh",
+    23,
+    [
+      "Postmodern",
+      "Medium",
+      "Nanite"
+    ]
+  ],
+  [
+    "Advanced Power Rig",
+    24,
+    [
+      "Postmodern",
+      "Power",
+      "Medium"
+    ]
+  ],
+  [
+    "Compact Energy Shell",
+    26,
+    [
+      "Postmodern",
+      "Power",
+      "Light"
+    ]
+  ],
+  [
+    "Nanite Combat Rig",
+    25,
+    [
+      "Postmodern",
+      "Medium",
+      "Nanite",
+      "Ablative(24)"
+    ]
+  ],
+  [
+    "Reflex Armor",
+    27,
+    [
+      "Postmodern",
+      "Medium",
+      "Power"
+    ]
+  ],
+  [
+    "Adaptive Combat Suit",
+    27,
+    [
+      "Postmodern",
+      "Medium",
+      "Sealed"
+    ]
+  ],
+  [
+    "Pulse-Resistant Armor",
+    28,
+    [
+      "Postmodern",
+      "Medium",
+      "Ablative(40)"
+    ]
+  ],
+  [
+    "Heavy Combat Exosuit",
+    29,
+    [
+      "Postmodern",
+      "Power",
+      "Heavy"
+    ]
+  ],
+  [
+    "Synthetic Assault Armor",
+    28,
+    [
+      "Postmodern",
+      "Nanite",
+      "Medium"
+    ]
+  ],
+  [
+    "Siege-Class Titan Armor",
+    30,
+    [
+      "Postmodern",
+      "Power",
+      "Heavy",
+      "Sealed",
+      "Ablative(100)"
+    ]
+  ],
+  [
+    "Voidwalker's Rig",
+    26,
+    [
+      "Postmodern",
+      "Sealed",
+      "Medium"
+    ]
+  ],
+  [
+    "Reactive Energy Vest",
+    25,
+    [
+      "Postmodern",
+      "Medium",
+      "Ablative(20)"
+    ]
+  ],
+  [
+    "Nanite Recon Shell",
+    24,
+    [
+      "Postmodern",
+      "Nanite",
+      "Light"
+    ]
+  ],
+  [
+    "Frontline Exosuit",
+    26,
+    [
+      "Postmodern",
+      "Power",
+      "Medium"
+    ]
+  ],
+  [
+    "Nanite Tactical Frame",
+    27,
+    [
+      "Postmodern",
+      "Nanite",
+      "Sealed",
+      "Medium"
     ]
   ]
 ]
