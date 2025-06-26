@@ -25,6 +25,8 @@ encounter_listbox = None
 encounter_char_listbox = None
 tracker_listbox = None
 tracker_display = None
+armor_listbox = None
+weapon_listbox = None
 
 # ==========================
 # Presets Data and File Path
@@ -65,6 +67,16 @@ Generator Tab
 - Click the Generate buttons to populate each section. The Clear buttons remove current entries.
 - The output box shows the assembled character and highlights keywords.
 - Save Character stores the result, while Save Template saves generation settings for reuse.
+
+Armor Tab
+---------
+- Shows the list of armor currently assigned to the character.
+- Use Add, Edit and Remove to manage entries.
+
+Weapons Tab
+-----------
+- Shows the list of weapons currently assigned to the character.
+- Use Add, Edit and Remove to manage entries.
 
 Characters Tab
 --------------
@@ -321,6 +333,27 @@ def generate_weapons_advanced():
 # ==========================
 # Root and Display Functions
 # ==========================
+
+def update_armor_listbox():
+    if armor_listbox is not None:
+        armor_listbox.delete(0, tk.END)
+        for armor in global_armor:
+            armor_listbox.insert(
+                tk.END,
+                f"{armor['name']} (+{armor['bonus']}) [{', '.join(armor['tags'])}]",
+            )
+
+
+def update_weapon_listbox():
+    if weapon_listbox is not None:
+        weapon_listbox.delete(0, tk.END)
+        for weapon in global_weapons:
+            tags = weapon['tags'] if weapon['tags'] else ''
+            weapon_listbox.insert(
+                tk.END,
+                f"{weapon['name']} ({weapon['damage']}) [{tags}] {weapon['stat']}",
+            )
+
 def refresh_display():
     if global_root is not None:
         total_dex_penalty = 0
@@ -425,6 +458,8 @@ def refresh_display():
     output_text = f"{root_line}\n{derived_line}\n{armor_section}\n{weapons_section}\n{powers_section}\n"
     output_box.delete("1.0", tk.END)
     output_box.insert(tk.END, output_text)
+    update_armor_listbox()
+    update_weapon_listbox()
     update_keyword_highlights()
 
 def generate_root():
@@ -773,6 +808,88 @@ def open_weapon_selector():
     tk.Button(btn_frame, text="Add Selected", command=add_selected).pack(fill=tk.X)
     tk.Button(btn_frame, text="Cancel", command=dialog.destroy).pack(fill=tk.X, pady=5)
     lb.focus_set()
+
+def add_armor_entry():
+    dlg = ArmorDialog(root, title="Add Armor")
+    if dlg.result:
+        global_armor.append({
+            'name': dlg.result[0],
+            'bonus': dlg.result[1],
+            'tags': dlg.result[2],
+        })
+        refresh_display()
+
+
+def edit_armor_entry():
+    if armor_listbox is None or not armor_listbox.curselection():
+        return
+    idx = armor_listbox.curselection()[0]
+    armor = global_armor[idx]
+    dlg = ArmorDialog(
+        root,
+        title="Edit Armor",
+        name=armor['name'],
+        bonus=armor['bonus'],
+        tags=', '.join(armor['tags']),
+    )
+    if dlg.result:
+        global_armor[idx] = {
+            'name': dlg.result[0],
+            'bonus': dlg.result[1],
+            'tags': dlg.result[2],
+        }
+        refresh_display()
+
+
+def remove_armor_entry():
+    if armor_listbox is None or not armor_listbox.curselection():
+        return
+    idx = armor_listbox.curselection()[0]
+    global_armor.pop(idx)
+    refresh_display()
+
+
+def add_weapon_entry():
+    dlg = WeaponDialog(root, title="Add Weapon")
+    if dlg.result:
+        global_weapons.append({
+            'name': dlg.result[0],
+            'damage': dlg.result[1],
+            'tags': dlg.result[2],
+            'stat': dlg.result[3],
+        })
+        refresh_display()
+
+
+def edit_weapon_entry():
+    if weapon_listbox is None or not weapon_listbox.curselection():
+        return
+    idx = weapon_listbox.curselection()[0]
+    w = global_weapons[idx]
+    dlg = WeaponDialog(
+        root,
+        title="Edit Weapon",
+        name=w['name'],
+        damage=w['damage'],
+        tags=w['tags'],
+        stat=w['stat'],
+    )
+    if dlg.result:
+        global_weapons[idx] = {
+            'name': dlg.result[0],
+            'damage': dlg.result[1],
+            'tags': dlg.result[2],
+            'stat': dlg.result[3],
+        }
+        refresh_display()
+
+
+def remove_weapon_entry():
+    if weapon_listbox is None or not weapon_listbox.curselection():
+        return
+    idx = weapon_listbox.curselection()[0]
+    global_weapons.pop(idx)
+    refresh_display()
 
 # ==========================
 # Keyword Saving/Loading Functions
@@ -1838,12 +1955,16 @@ if __name__ == '__main__':
     notebook.pack(fill=tk.BOTH, expand=True)
 
     generator_tab = ttk.Frame(notebook)
+    armor_tab = ttk.Frame(notebook)
+    weapon_tab = ttk.Frame(notebook)
     characters_tab = ttk.Frame(notebook)
     encounters_tab = ttk.Frame(notebook)
     tracker_tab = ttk.Frame(notebook)
     keywords_tab = ttk.Frame(notebook)
     help_tab = ttk.Frame(notebook)
     notebook.add(generator_tab, text="Generator")
+    notebook.add(armor_tab, text="Armor")
+    notebook.add(weapon_tab, text="Weapons")
     notebook.add(characters_tab, text="Characters")
     notebook.add(encounters_tab, text="Encounters")
     notebook.add(tracker_tab, text="Tracker")
@@ -1987,6 +2108,26 @@ if __name__ == '__main__':
     btn_edit_weapon.grid(row=3, column=0, columnspan=6, pady=5)
     btn_add_weapon = tk.Button(weapon_gen_frame, text="Add From List", command=open_weapon_selector)
     btn_add_weapon.grid(row=4, column=0, columnspan=6, pady=5)
+
+    # --- Armor Tab ---
+    armor_listbox = tk.Listbox(armor_tab)
+    armor_listbox.pack(fill=tk.BOTH, expand=True, padx=5, pady=5)
+
+    armor_btn_frame = tk.Frame(armor_tab)
+    armor_btn_frame.pack(pady=5)
+    tk.Button(armor_btn_frame, text="Add", command=add_armor_entry).pack(side=tk.LEFT, padx=5)
+    tk.Button(armor_btn_frame, text="Edit", command=edit_armor_entry).pack(side=tk.LEFT, padx=5)
+    tk.Button(armor_btn_frame, text="Remove", command=remove_armor_entry).pack(side=tk.LEFT, padx=5)
+
+    # --- Weapons Tab ---
+    weapon_listbox = tk.Listbox(weapon_tab)
+    weapon_listbox.pack(fill=tk.BOTH, expand=True, padx=5, pady=5)
+
+    weapon_btn_frame = tk.Frame(weapon_tab)
+    weapon_btn_frame.pack(pady=5)
+    tk.Button(weapon_btn_frame, text="Add", command=add_weapon_entry).pack(side=tk.LEFT, padx=5)
+    tk.Button(weapon_btn_frame, text="Edit", command=edit_weapon_entry).pack(side=tk.LEFT, padx=5)
+    tk.Button(weapon_btn_frame, text="Remove", command=remove_weapon_entry).pack(side=tk.LEFT, padx=5)
 
     # --- Power Generation Controls Subframe ---
     power_gen_frame = tk.LabelFrame(control_frame, text="Power Generation Controls")
@@ -2133,4 +2274,5 @@ if __name__ == '__main__':
     update_encounter_list()
     update_tracker_list()
     update_all_preset_menus()
+    refresh_display()
     root.mainloop()
