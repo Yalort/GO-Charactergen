@@ -559,5 +559,131 @@
       "Sealed",
       "Medium"
     ]
+  ],
+  [
+    "Shadowed Leather Armor",
+    2,
+    [
+      "Medieval",
+      "Light",
+      "Stealth(6)"
+    ]
+  ],
+  [
+    "Silent Studded Leather",
+    3,
+    [
+      "Medieval",
+      "Light",
+      "Stealth(7)"
+    ]
+  ],
+  [
+    "Blackened Brigandine",
+    4,
+    [
+      "Medieval",
+      "Medium",
+      "Stealth(5)"
+    ]
+  ],
+  [
+    "Quiet Chain Shirt",
+    4,
+    [
+      "Medieval",
+      "Medium",
+      "Stealth(4)"
+    ]
+  ],
+  [
+    "Urban Camo Vest",
+    12,
+    [
+      "Modern",
+      "Light",
+      "Stealth(10)"
+    ]
+  ],
+  [
+    "Night Operations Armor",
+    14,
+    [
+      "Modern",
+      "Medium",
+      "Stealth(12)"
+    ]
+  ],
+  [
+    "Stealth Ops Body Armor",
+    16,
+    [
+      "Modern",
+      "Medium",
+      "Ablative",
+      "Stealth(14)"
+    ]
+  ],
+  [
+    "Thermal-Dampening Suit",
+    18,
+    [
+      "Modern",
+      "Light",
+      "Sealed",
+      "Stealth(13)"
+    ]
+  ],
+  [
+    "Ghost Mesh Vest",
+    22,
+    [
+      "Postmodern",
+      "Light",
+      "Nanite",
+      "Stealth(18)"
+    ]
+  ],
+  [
+    "Veil-Skin Armor",
+    24,
+    [
+      "Postmodern",
+      "Medium",
+      "Nanite",
+      "Ablative",
+      "Stealth(21)"
+    ]
+  ],
+  [
+    "Whisper-Class Exosuit",
+    26,
+    [
+      "Postmodern",
+      "Powered",
+      "Medium",
+      "Stealth(23)"
+    ]
+  ],
+  [
+    "Neural Cloak Rig",
+    28,
+    [
+      "Postmodern",
+      "Medium",
+      "Nanite",
+      "Sealed",
+      "Stealth(27)"
+    ]
+  ],
+  [
+    "Phantom Suit",
+    30,
+    [
+      "Postmodern",
+      "Medium",
+      "Sealed",
+      "Stealth(30)"
+    ]
   ]
 ]
