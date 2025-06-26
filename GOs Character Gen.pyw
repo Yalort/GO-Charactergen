@@ -27,6 +27,9 @@ tracker_listbox = None
 tracker_display = None
 armor_listbox = None
 weapon_listbox = None
+tracker_init_entry = None
+tracker_wounds_entry = None
+tracker_cond_entry = None
 
 # Base stats supported for keyword modifiers
 STAT_KEYS = ["STR", "AGL", "FGT", "AWE", "STA", "DEX", "INT", "PRE"]
@@ -1175,9 +1178,15 @@ def generate_encounter_from_group():
 # ==========================
 def update_tracker_list():
     if tracker_listbox is not None:
+        cur_sel = tracker_listbox.curselection()
         tracker_listbox.delete(0, tk.END)
         for ent in tracker_entities:
-            tracker_listbox.insert(tk.END, ent['name'])
+            init_val = ent.get('initiative', '')
+            display_name = f"{init_val} - {ent['name']}" if init_val != '' else ent['name']
+            tracker_listbox.insert(tk.END, display_name)
+        if cur_sel:
+            idx = min(cur_sel[0], tracker_listbox.size() - 1)
+            tracker_listbox.selection_set(idx)
     update_tracker_display()
 
 def update_tracker_display():
@@ -1185,10 +1194,29 @@ def update_tracker_display():
         return
     tracker_display.delete('1.0', tk.END)
     if not tracker_listbox or not tracker_listbox.curselection():
+        if tracker_init_entry:
+            tracker_init_entry.delete(0, tk.END)
+        if tracker_wounds_entry:
+            tracker_wounds_entry.delete(0, tk.END)
+        if tracker_cond_entry:
+            tracker_cond_entry.delete(0, tk.END)
         return
     idx = tracker_listbox.curselection()[0]
     ent = tracker_entities[idx]
     tracker_display.insert(tk.END, character_to_text(ent))
+    tracker_display.insert(
+        tk.END,
+        f"\n\nInitiative: {ent.get('initiative', '')}\nWounds: {ent.get('wounds', 0)}\nConditions: {ent.get('conditions', '')}"
+    )
+    if tracker_init_entry:
+        tracker_init_entry.delete(0, tk.END)
+        tracker_init_entry.insert(0, str(ent.get('initiative', '')))
+    if tracker_wounds_entry:
+        tracker_wounds_entry.delete(0, tk.END)
+        tracker_wounds_entry.insert(0, str(ent.get('wounds', 0)))
+    if tracker_cond_entry:
+        tracker_cond_entry.delete(0, tk.END)
+        tracker_cond_entry.insert(0, ent.get('conditions', ''))
 
 def on_tracker_select(event=None):
     update_tracker_display()
@@ -1234,6 +1262,32 @@ def update_entity_from_generator():
     ent['weapons'] = list(global_weapons)
     ent['powers'] = list(global_powers)
     update_tracker_display()
+
+def save_tracker_entity_stats():
+    if not tracker_listbox or not tracker_listbox.curselection():
+        return
+    idx = tracker_listbox.curselection()[0]
+    ent = tracker_entities[idx]
+    try:
+        ent['initiative'] = int(tracker_init_entry.get()) if tracker_init_entry.get() != '' else ''
+    except ValueError:
+        ent['initiative'] = ''
+    try:
+        ent['wounds'] = int(tracker_wounds_entry.get()) if tracker_wounds_entry.get() else 0
+    except ValueError:
+        ent['wounds'] = 0
+    ent['conditions'] = tracker_cond_entry.get()
+    update_tracker_list()
+
+def clear_tracker():
+    tracker_entities.clear()
+    update_tracker_list()
+    if tracker_init_entry:
+        tracker_init_entry.delete(0, tk.END)
+    if tracker_wounds_entry:
+        tracker_wounds_entry.delete(0, tk.END)
+    if tracker_cond_entry:
+        tracker_cond_entry.delete(0, tk.END)
 
 def open_tracker_char_dialog():
     dialog = tk.Toplevel()
@@ -1342,7 +1396,10 @@ def create_entity_from_data(name, data):
             'root': data['root'],
             'armor': armor,
             'weapons': weapons,
-            'powers': powers
+            'powers': powers,
+            'initiative': 0,
+            'wounds': 0,
+            'conditions': ''
         }
     else:
         return {
@@ -1350,7 +1407,10 @@ def create_entity_from_data(name, data):
             'root': data.get('root'),
             'armor': data.get('armor', []),
             'weapons': data.get('weapons', []),
-            'powers': data.get('powers', [])
+            'powers': data.get('powers', []),
+            'initiative': 0,
+            'wounds': 0,
+            'conditions': ''
         }
 
 def update_keywords_listbox():
@@ -2342,6 +2402,20 @@ if __name__ == '__main__':
 
     tracker_btn_frame = tk.Frame(tracker_tab)
     tracker_btn_frame.pack(side=tk.RIGHT, fill=tk.Y)
+    tracker_stat_frame = tk.LabelFrame(tracker_btn_frame, text="Status")
+    tracker_stat_frame.pack(fill=tk.X, padx=5, pady=5)
+    tk.Label(tracker_stat_frame, text="Init:").grid(row=0, column=0)
+    tracker_init_entry = tk.Entry(tracker_stat_frame, width=4)
+    tracker_init_entry.grid(row=0, column=1)
+    tk.Label(tracker_stat_frame, text="Wounds:").grid(row=1, column=0)
+    tracker_wounds_entry = tk.Entry(tracker_stat_frame, width=4)
+    tracker_wounds_entry.grid(row=1, column=1)
+    tk.Label(tracker_stat_frame, text="Conditions:").grid(row=2, column=0)
+    tracker_cond_entry = tk.Entry(tracker_stat_frame)
+    tracker_cond_entry.grid(row=2, column=1)
+    btn_save_status = tk.Button(tracker_stat_frame, text="Save", command=save_tracker_entity_stats)
+    btn_save_status.grid(row=3, column=0, columnspan=2, pady=2)
+
     btn_add_tracker = tk.Button(tracker_btn_frame, text="Add Char", command=open_tracker_char_dialog)
     btn_add_tracker.pack(fill=tk.X, padx=5, pady=2)
     btn_import_enc = tk.Button(tracker_btn_frame, text="Import Encounter", command=import_encounter_to_tracker)
@@ -2352,6 +2426,8 @@ if __name__ == '__main__':
     btn_load_entity.pack(fill=tk.X, padx=5, pady=2)
     btn_update_entity = tk.Button(tracker_btn_frame, text="Update From Generator", command=update_entity_from_generator)
     btn_update_entity.pack(fill=tk.X, padx=5, pady=2)
+    btn_clear_tracker = tk.Button(tracker_btn_frame, text="Clear", command=clear_tracker)
+    btn_clear_tracker.pack(fill=tk.X, padx=5, pady=2)
 
     # --- Help Tab ---
     help_text_box = tk.Text(help_tab, wrap=tk.WORD, state=tk.NORMAL)
